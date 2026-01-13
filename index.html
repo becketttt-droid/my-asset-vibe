@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V29 Minimal)</title>
+    <title>My Net Worth (V30 Cash Separated)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -42,15 +42,13 @@
             border: 1px solid rgba(255,255,255,0.05);
         }
         
-        /* 隱藏的輸入框 (只留 CSV) */
         .csv-input {
             width: 100%; background: #000; border: 1px solid #333; color: #fff;
             padding: 12px; border-radius: 10px; font-size: 14px; margin-top: 10px; outline: none;
-            color: #888; /* 讓連結看起來低調一點 */
+            color: #888;
         }
         .csv-input:focus { border-color: var(--accent); color: #fff; }
 
-        /* V29: 工具列佈局 */
         .toolbar {
             display: flex; justify-content: space-between; align-items: center;
             width: 100%;
@@ -66,7 +64,6 @@
         .btn-refresh { color: var(--accent); background: rgba(74, 144, 226, 0.15); }
         .btn-edit { color: var(--edit-btn); background: rgba(46, 204, 113, 0.15); }
 
-        /* V29: 匯率顯示膠囊 */
         .rate-pill {
             font-size: 13px; color: #aaa; 
             background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 8px;
@@ -197,7 +194,6 @@
                     <span id="rateDisplay" class="rate-val">32.5</span>
                 </div>
             </div>
-            
             <input type="text" id="csvUrl" class="csv-input" placeholder="Google Sheet CSV 連結..." onchange="saveUrl()">
             <div id="errorMsg" class="error-text"></div>
         </div>
@@ -260,24 +256,33 @@
 </div>
 
 <script>
+    // V30: 定義獨立的類別顏色
     const colors = { 
-        us: '#4a90e2', tw: '#e91e63', bond: '#f1c40f', cash: '#2ecc71', realestate: '#9b59b6', 
-        car: '#e67e22', debt: '#ff4757', interest: '#3f51b5',
+        us_stock: '#4a90e2', // 美股 (藍)
+        tw_stock: '#e91e63', // 台股 (桃紅)
+        bond: '#f1c40f', 
+        cash: '#2ecc71',     // 存款 (綠)
+        realestate: '#9b59b6', 
+        car: '#e67e22', 
+        debt: '#ff4757', 
+        interest: '#3f51b5',
         liquid: '#2ecc71', fixed: '#9b59b6', usd: '#4a90e2', twd: '#e91e63', networth: '#3498db'
     };
+    
+    // V30: 獨立顯示名稱
     const typeLabels = { 
-        us: '美股', tw: '台股', bond: '債券', cash: '現金', realestate: '房產', car: '車輛', 
+        us_stock: '美股', tw_stock: '台股', bond: '債券', cash: '現金/存款', 
+        realestate: '房產', car: '車輛', 
         debt: '負債本金', interest: '利息',
         liquid: '流動', fixed: '固定', usd: '美元', twd: '台幣', networth: '淨值'
     };
     
     document.getElementById('csvUrl').value = localStorage.getItem('vibeSheetUrl') || '';
     let currentRate = parseFloat(localStorage.getItem('vibeUsdRate')) || 32.5;
-    document.getElementById('rateDisplay').innerText = currentRate; // V29: 更新文字顯示
+    document.getElementById('rateDisplay').innerText = currentRate;
     if(document.getElementById('csvUrl').value) fetchData();
 
     function saveUrl() { localStorage.setItem('vibeSheetUrl', document.getElementById('csvUrl').value); fetchData(); }
-    
     function csvSplit(str) {
         const result = []; let current = ''; let inQuote = false;
         for (let i = 0; i < str.length; i++) {
@@ -337,9 +342,7 @@
             if (row2.length >= 6) {
                 const r = parseFloat(row2[5].replace(/,/g, ''));
                 if (!isNaN(r) && r > 20 && r < 50) { 
-                    currentRate = r; 
-                    // V29: 更新文字顯示
-                    document.getElementById('rateDisplay').innerText = currentRate;
+                    currentRate = r; document.getElementById('rateDisplay').innerText = currentRate;
                     localStorage.setItem('vibeUsdRate', currentRate);
                 }
             }
@@ -347,12 +350,23 @@
 
         let totalNetWorth = 0; let totalAssetsOnly = 0;
         let totalDebtAbs = 0; let totalInterestAbs = 0;
-        let cats = { us:0, tw:0, bond:0, cash:0, realestate:0, car:0, debt:0, interest:0 };
+        
+        // V30: 嚴格分類容器
+        let cats = { us_stock:0, tw_stock:0, bond:0, cash:0, realestate:0, car:0, debt:0, interest:0 };
+        
         let liquidity = { liquid: 0, fixed: 0 };
         let currency = { usd: 0, twd: 0 };
         let leverage = { networth: 0, debt: 0, interest: 0 };
         let debtBreakdown = { debt: 0, interest: 0 };
-        let groups = { realestate: [], car: [], us: [], tw: [], bond: [], cash: [], debt: [] };
+        
+        // V30: 分組清單
+        let groups = { 
+            realestate: [], car: [], 
+            cash: [], // 獨立存款
+            us_stock: [], // 獨立美股
+            tw_stock: [], // 獨立台股
+            bond: [], debt: [] 
+        };
 
         for (let i = 1; i < lines.length; i++) {
             if (!lines[i].trim()) continue;
@@ -364,35 +378,54 @@
             if (isNaN(qty) || isNaN(price)) continue;
 
             const typeStr = row[0].toLowerCase().trim(); const name = row[1]; 
-            let category = 'cash'; let displayCategory = 'cash';
+            let category = 'cash'; // 預設值 (V30: 如果沒抓到別的，就當作現金)
+            let displayCategory = 'cash';
             
-            if (typeStr === 'debt') { category = 'debt'; displayCategory = 'debt'; }
-            else if (typeStr === 'interest') { category = 'interest'; displayCategory = 'debt'; }
-            else if (typeStr.includes('realestate') || typeStr.includes('house')) { category = 'realestate'; displayCategory = 'realestate'; }
-            else if (typeStr.includes('car')) { category = 'car'; displayCategory = 'car'; }
-            else if (typeStr.includes('bond')) { category = 'bond'; displayCategory = 'bond'; }
-            else if (typeStr.includes('stock') || typeStr.includes('tw') || typeStr.includes('0050')) { category = 'tw'; displayCategory = 'tw'; }
-            else if (typeStr.includes('us')) { category = 'us'; displayCategory = 'us'; }
+            // --- V30: 新的分類邏輯 (優先權：負債 > 資產類別 > 國家) ---
+            if (typeStr === 'debt') { 
+                category = 'debt'; displayCategory = 'debt'; 
+            } else if (typeStr === 'interest') { 
+                category = 'interest'; displayCategory = 'debt'; 
+            } else if (typeStr.includes('realestate') || typeStr.includes('house')) { 
+                category = 'realestate'; displayCategory = 'realestate'; 
+            } else if (typeStr.includes('car')) { 
+                category = 'car'; displayCategory = 'car'; 
+            } else if (typeStr.includes('bond')) { 
+                category = 'bond'; displayCategory = 'bond'; 
+            } 
+            // 存款優先判定
+            else if (typeStr.includes('cash') || typeStr.includes('deposit') || typeStr.includes('bank') || typeStr.includes('saving') || typeStr.includes('money') || typeStr === 'twd') {
+                category = 'cash'; displayCategory = 'cash';
+            }
+            // 剩下的如果是 us -> 美股
+            else if (typeStr.includes('us')) { 
+                category = 'us_stock'; displayCategory = 'us_stock'; 
+            } 
+            // 剩下的如果是 tw -> 台股
+            else if (typeStr.includes('stock') || typeStr.includes('tw') || typeStr.includes('0050')) { 
+                category = 'tw_stock'; displayCategory = 'tw_stock'; 
+            }
 
             let valTWD = 0; let displayPrice = '';
-            const isAssetUSD = typeStr.includes('us') && !['realestate','car','debt','interest'].includes(category);
+            // 判斷是否為美元計價 (美股 or USD現金)
+            // 這裡邏輯：如果是 'us_stock' 或 type 裡有 'us'/'usd' 且不是 'twd'
+            const isAssetUSD = (category === 'us_stock') || (typeStr.includes('us') && !typeStr.includes('twd'));
 
             if (isAssetUSD) { valTWD = qty * price * currentRate; displayPrice = `US$ ${price.toLocaleString()}`; } 
             else { valTWD = qty * price; displayPrice = `NT$ ${price.toLocaleString()}`; }
 
+            // 統計
             if(!cats[category]) cats[category] = 0; cats[category] += valTWD;
             
             if (category === 'debt') { 
-                totalNetWorth -= valTWD; totalDebtAbs += valTWD;
-                debtBreakdown.debt += valTWD;
-            }
-            else if (category === 'interest') { 
-                totalNetWorth -= valTWD; totalInterestAbs += valTWD;
-                debtBreakdown.interest += valTWD;
-            }
-            else {
+                totalNetWorth -= valTWD; totalDebtAbs += valTWD; debtBreakdown.debt += valTWD;
+            } else if (category === 'interest') { 
+                totalNetWorth -= valTWD; totalInterestAbs += valTWD; debtBreakdown.interest += valTWD;
+            } else {
                 totalNetWorth += valTWD; totalAssetsOnly += valTWD;
+                // 流動性：房產、車子算固定，其他算流動
                 if (['realestate','car'].includes(category)) liquidity.fixed += valTWD; else liquidity.liquid += valTWD;
+                // 幣別：美股 或 USD現金 算美元
                 if (isAssetUSD) currency.usd += valTWD; else currency.twd += valTWD;
             }
 
@@ -412,12 +445,14 @@
         
         drawStructureBar(leverage, totalGrossAssets);
         drawPie('chartDebt', 'legendDebt', 'valDebt', debtBreakdown, totalLiabilities, ['debt', 'interest']);
-        drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'us', 'tw', 'bond', 'cash']);
+        // V30: 資產配置圖也更新分類
+        drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond']);
         drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
         drawPie('chartCurrency', 'legendCurrency', 'valCurrency', currency, totalAssetsOnly, ['usd', 'twd']);
 
         const container = document.getElementById('assetListContainer');
-        const order = ['realestate', 'car', 'us', 'tw', 'bond', 'cash', 'debt'];
+        // V30: 卡片顯示順序 (現金放前面一點)
+        const order = ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond', 'debt'];
         
         order.forEach(key => {
             const items = groups[key];
