@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="My Assets">
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
+
+    <title>My Net Worth (V22 iOS App)</title>
+    <style>
+        :root {
+            --bg: #0f1115;
+            --card: #1c1e24;
+            --card-hover: #252830;
+            --text: #ffffff;
+            --subtext: #8b9bb4;
+            --accent: #4a90e2;
+            --loading: #f39c12;
+            --auto-tag: #00d2d3;
+            /* iOS 安全區域設定 (避開瀏海) */
+            --safe-top: env(safe-area-inset-top);
+            --safe-bottom: env(safe-area-inset-bottom);
+        }
+        
+        body {
+            background-color: var(--bg); color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; 
+            /* 讓內容避開瀏海與 Home Bar */
+            padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom)) 20px;
+            display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh;
+            -webkit-tap-highlight-color: transparent; /* 移除點擊高亮 */
+        }
+
+        .container { 
+            width: 100%; 
+            max-width: 1100px; 
+            transition: max-width 0.3s ease;
+        }
+        
+        .config-wrapper { width: 100%; max-width: 500px; margin: 0 auto; }
+
+        .config-box {
+            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;
+        }
+        .config-box input {
+            width: 100%; background: #000; border: 1px solid #333; color: #fff;
+            padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 5px;
+            /* 防止輸入時畫面放大 */
+            font-size: 16px; 
+        }
+        .config-label { font-size: 12px; color: var(--subtext); display: flex; justify-content: space-between; align-items: center;}
+        .btn-refresh { cursor: pointer; color: var(--accent); font-weight: bold;}
+        .rate-display { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #fff; }
+        .auto-badge {
+            font-size: 10px; background: rgba(0, 210, 211, 0.15); color: var(--auto-tag);
+            padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 210, 211, 0.3);
+            display: none;
+        }
+        
+        header { text-align: center; margin-bottom: 30px; }
+        .total-title { font-size: 14px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
+
+        /* Charts */
+        .charts-wrapper {
+            display: flex; gap: 15px; overflow-x: auto; 
+            padding-bottom: 10px; margin-bottom: 20px;
+            scroll-snap-type: x mandatory;
+            /* 隱藏滾動條 */
+            scrollbar-width: none; 
+        }
+        .charts-wrapper::-webkit-scrollbar { display: none; }
+
+        .chart-card {
+            background: var(--card); border-radius: 20px; padding: 20px;
+            min-width: 280px; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            scroll-snap-align: center;
+            display: flex; flex-direction: column; align-items: center;
+            flex: 1;
+        }
+        .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--subtext); }
+        .chart-container {
+            width: 160px; height: 160px; border-radius: 50%; margin-bottom: 15px;
+            background: #333; position: relative;
+        }
+        .chart-inner {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 110px; height: 110px; background-color: var(--card); border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; flex-direction: column;
+            color: var(--subtext); font-size: 12px; text-align: center;
+        }
+        .chart-inner .inner-val { font-size: 16px; font-weight: bold; color: #fff; }
+        .chart-inner .inner-label { font-size: 10px; color: #888; margin-top: 2px; }
+        
+        .legend-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
+        .legend-item {
+            display: flex; align-items: center;
+            background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px;
+            font-size: 11px; border: 1px solid rgba(255,255,255,0.05);
+            white-space: nowrap;
+        }
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+        /* Accordion */
+        .category-group { margin-bottom: 15px; border-radius: 16px; overflow: hidden; background-color: var(--card); transition: all 0.3s ease; }
+        .category-group.open { box-shadow: 0 10px 30px rgba(0,0,0,0.3); background-color: var(--card); }
+
+        .category-header {
+            padding: 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer;
+            background-color: var(--card);
+            border-bottom: 1px solid transparent;
+            transition: background-color 0.2s;
+            /* 增加觸控區域 */
+            min-height: 44px;
+        }
+        .category-header:active { background-color: var(--card-hover); }
+        .category-group.open .category-header { border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        .cat-title-area { display: flex; align-items: center; gap: 12px; }
+        .cat-icon { width: 10px; height: 10px; border-radius: 50%; }
+        .cat-name { font-size: 16px; font-weight: bold; color: #fff; }
+        .cat-count { font-size: 12px; color: var(--subtext); background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; }
+
+        .cat-total-area { text-align: right; }
+        .cat-amount { font-size: 16px; font-weight: bold; color: #fff; display: block; }
+        .cat-pct { font-size: 12px; color: var(--subtext); }
+
+        .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; margin-left: 10px; font-size: 12px;}
+        .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
+
+        .category-content {
+            max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out;
+            background-color: rgba(0,0,0,0.2);
+        }
+        .category-group.open .category-content { max-height: 2000px; }
+
+        .asset-item {
+            padding: 15px 20px;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            position: relative;
+        }
+        .asset-item:last-child { border-bottom: none; }
+        .asset-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #ddd; }
+        .asset-info p { margin: 0; font-size: 12px; color: var(--subtext); }
+        .asset-val { text-align: right; font-weight: 500; font-size: 15px; }
+        .asset-val small { font-size: 11px; opacity: 0.7; display: block;}
+        
+        .is-debt .cat-amount { color: #ff4757; }
+        .is-debt .asset-val { color: #ff4757; }
+        .is-interest .asset-val { color: #536dfe; }
+
+        .loading-text { color: var(--loading); text-align: center; margin-top: 20px; display: none;}
+        .error-text { color: #e74c3c; background: rgba(231, 76, 60, 0.1); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; display: none; line-height: 1.5;}
+        .scroll-hint { text-align: center; font-size: 10px; color: #555; margin-top: -10px; margin-bottom: 20px; }
+
+        @media (min-width: 768px) {
+            .container { padding: 40px; }
+            .charts-wrapper { overflow-x: visible; flex-wrap: wrap; justify-content: center; gap: 20px; }
+            .chart-card { min-width: 220px; flex: 1 1 200px; max-width: 300px; }
+            .scroll-hint { display: none; }
+            .asset-list-container { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="config-wrapper">
+        <div class="config-box">
+            <div class="config-label">
+                <span>Google Sheet CSV Link</span>
+                <span class="btn-refresh" onclick="fetchData()">🔄 重整</span>
+            </div>
+            <input type="text" id="csvUrl" placeholder="貼上 CSV 連結..." onchange="saveUrl()">
+            
+            <div class="config-label" style="margin-top: 15px;">
+                <span>USD/TWD 匯率</span>
+                <div class="rate-display">
+                    <input type="number" id="usdRate" value="32.5" style="width: 70px; text-align:right;" onchange="manualRateChange()">
+                    <span id="autoBadge" class="auto-badge">AUTO (F2)</span>
+                </div>
+            </div>
+            <div id="errorMsg" class="error-text"></div>
+        </div>
+    </div>
+
+    <header>
+        <div class="total-title">NET WORTH</div>
+        <div class="total-amount"><span class="currency-tag">NT$</span> <span id="displayTotal">0</span></div>
+    </header>
+
+    <div class="charts-wrapper">
+        <div class="chart-card">
+            <div class="chart-title">資金結構 (Structure)</div>
+            <div class="chart-container" id="chartLeverage"><div class="chart-inner"><div class="inner-val" id="valLeverage">0</div><div class="inner-label">總資產</div></div></div>
+            <div id="legendLeverage" class="legend-box"></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">資產配置 (Assets)</div>
+            <div class="chart-container" id="chartCategory"><div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div></div>
+            <div id="legendCategory" class="legend-box"></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">流動性 (Liquidity)</div>
+            <div class="chart-container" id="chartLiquidity"><div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div></div>
+            <div id="legendLiquidity" class="legend-box"></div>
+        </div>
+        <div class="chart-card">
+            <div class="chart-title">幣別曝險 (Currency)</div>
+            <div class="chart-container" id="chartCurrency"><div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div></div>
+            <div id="legendCurrency" class="legend-box"></div>
+        </div>
+    </div>
+    <div class="scroll-hint">← 左右滑動查看分析圖 →</div>
+
+    <div id="loading" class="loading-text">運算中...</div>
+    <div id="assetListContainer" class="asset-list-container"></div>
+</div>
+
+<script>
+    const colors = { 
+        us: '#4a90e2', tw: '#e91e63', bond: '#f1c40f', cash: '#2ecc71', realestate: '#9b59b6', 
+        car: '#e67e22', debt: '#ff4757', interest: '#3f51b5',
+        liquid: '#2ecc71', fixed: '#9b59b6', usd: '#4a90e2', twd: '#e91e63', networth: '#3498db'
+    };
+    const typeLabels = { 
+        us: '美股', tw: '台股', bond: '債券', cash: '現金', realestate: '房產', car: '車輛', 
+        debt: '負債管理', liquid: '流動', fixed: '固定', usd: '美元', twd: '台幣', networth: '淨值'
+    };
+    
+    document.getElementById('csvUrl').value = localStorage.getItem('vibeSheetUrl') || '';
+    let currentRate = parseFloat(localStorage.getItem('vibeUsdRate')) || 32.5;
+    document.getElementById('usdRate').value = currentRate;
+    if(document.getElementById('csvUrl').value) fetchData();
+
+    function saveUrl() { localStorage.setItem('vibeSheetUrl', document.getElementById('csvUrl').value); fetchData(); }
+    function manualRateChange() { currentRate = parseFloat(document.getElementById('usdRate').value); localStorage.setItem('vibeUsdRate', currentRate); document.getElementById('autoBadge').style.display = 'none'; fetchData(false); }
+    function csvSplit(str) {
+        const result = []; let current = ''; let inQuote = false;
+        for (let i = 0; i < str.length; i++) {
+            const char = str[i];
+            if (char === '"') { inQuote = !inQuote; continue; }
+            if (char === ',' && !inQuote) { result.push(current.trim()); current = ''; } else { current += char; }
+        }
+        result.push(current.trim()); return result;
+    }
+    function formatCompact(num) {
+        if (num >= 100000000) return (num / 100000000).toFixed(2) + '億';
+        if (num >= 10000) return (num / 10000).toFixed(0) + '萬';
+        return (num / 1000).toFixed(1) + 'k';
+    }
+    function toggleGroup(header) { header.parentElement.classList.toggle('open'); }
+
+    async function fetchData(needsNetwork = true) {
+        let url = document.getElementById('csvUrl').value.trim();
+        if (!url) return;
+        if (!needsNetwork && window.cachedCSV) { parseCSV(window.cachedCSV); return; }
+
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('assetListContainer').innerHTML = '';
+
+        const cacheBuster = encodeURIComponent(url + '&t=' + Date.now());
+        const proxies = [
+            'https://api.allorigins.win/raw?url=' + cacheBuster,
+            'https://corsproxy.io/?' + cacheBuster,
+            'https://thingproxy.freeboard.io/fetch/' + cacheBuster
+        ];
+        let text = ''; let success = false;
+        for (let proxy of proxies) {
+            try {
+                const res = await fetch(proxy);
+                if (res.ok) {
+                    text = await res.text();
+                    if (!text.trim().startsWith('<!DOCTYPE html') && !text.includes('<html')) { success = true; break; }
+                }
+            } catch (e) { }
+        }
+        if (success) {
+            window.cachedCSV = text; parseCSV(text);
+            document.getElementById('loading').style.display = 'none';
+        } else {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').innerHTML = `⚠️ 連線失敗，請重整。`;
+        }
+    }
+
+    function parseCSV(csvText) {
+        const lines = csvText.split('\n');
+        let foundRate = false;
+        if (lines.length > 1) {
+            const row2 = csvSplit(lines[1]); 
+            if (row2.length >= 6) {
+                const r = parseFloat(row2[5].replace(/,/g, ''));
+                if (!isNaN(r) && r > 20 && r < 50) { currentRate = r; foundRate = true; }
+            }
+        }
+        if (foundRate) {
+            document.getElementById('usdRate').value = currentRate;
+            document.getElementById('autoBadge').style.display = 'inline-block';
+        } else { document.getElementById('autoBadge').style.display = 'none'; }
+
+        let totalNetWorth = 0; let totalAssetsOnly = 0;
+        let totalDebtAbs = 0; let totalInterestAbs = 0;
+        let cats = { us:0, tw:0, bond:0, cash:0, realestate:0, car:0, debt:0, interest:0 };
+        let liquidity = { liquid: 0, fixed: 0 };
+        let currency = { usd: 0, twd: 0 };
+        let leverage = { networth: 0, debt: 0, interest: 0 };
+        let groups = { realestate: [], car: [], us: [], tw: [], bond: [], cash: [], debt: [] };
+
+        for (let i = 1; i < lines.length; i++) {
+            if (!lines[i].trim()) continue;
+            const row = csvSplit(lines[i]); 
+            if (row.length < 4) continue;
+            let rawPrice = row[2] ? row[2].replace(/,/g, '') : '0';
+            let rawQty = row[3] ? row[3].replace(/,/g, '') : '0';
+            const price = parseFloat(rawPrice); const qty = parseFloat(rawQty);   
+            if (isNaN(qty) || isNaN(price)) continue;
+
+            const typeStr = row[0].toLowerCase().trim(); const name = row[1]; 
+            let category = 'cash'; let displayCategory = 'cash';
+            
+            if (typeStr === 'debt') { category = 'debt'; displayCategory = 'debt'; }
+            else if (typeStr === 'interest') { category = 'interest'; displayCategory = 'debt'; }
+            else if (typeStr.includes('realestate') || typeStr.includes('house')) { category = 'realestate'; displayCategory = 'realestate'; }
+            else if (typeStr.includes('car')) { category = 'car'; displayCategory = 'car'; }
+            else if (typeStr.includes('bond')) { category = 'bond'; displayCategory = 'bond'; }
+            else if (typeStr.includes('stock') || typeStr.includes('tw') || typeStr.includes('0050')) { category = 'tw'; displayCategory = 'tw'; }
+            else if (typeStr.includes('us')) { category = 'us'; displayCategory = 'us'; }
+
+            let valTWD = 0; let displayPrice = '';
+            const isAssetUSD = typeStr.includes('us') && !['realestate','car','debt','interest'].includes(category);
+
+            if (isAssetUSD) { valTWD = qty * price * currentRate; displayPrice = `US$ ${price.toLocaleString()}`; } 
+            else { valTWD = qty * price; displayPrice = `NT$ ${price.toLocaleString()}`; }
+
+            if(!cats[category]) cats[category] = 0; cats[category] += valTWD;
+            
+            if (category === 'debt') { totalNetWorth -= valTWD; totalDebtAbs += valTWD; }
+            else if (category === 'interest') { totalNetWorth -= valTWD; totalInterestAbs += valTWD; }
+            else {
+                totalNetWorth += valTWD; totalAssetsOnly += valTWD;
+                if (['realestate','car'].includes(category)) liquidity.fixed += valTWD; else liquidity.liquid += valTWD;
+                if (isAssetUSD) currency.usd += valTWD; else currency.twd += valTWD;
+            }
+
+            if(groups[displayCategory]) {
+                groups[displayCategory].push({
+                    name, qty, displayPrice, valTWD, category, 
+                    typeStr: (category === 'debt' ? 'PRINCIPAL' : (category === 'interest' ? 'INTEREST' : ''))
+                });
+            }
+        }
+
+        leverage.networth = totalNetWorth; leverage.debt = totalDebtAbs; leverage.interest = totalInterestAbs;
+        let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
+
+        document.getElementById('displayTotal').innerText = Math.round(totalNetWorth).toLocaleString();
+        
+        drawPie('chartLeverage', 'legendLeverage', 'valLeverage', leverage, totalGrossAssets, ['networth', 'debt', 'interest']);
+        drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'us', 'tw', 'bond', 'cash']);
+        drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
+        drawPie('chartCurrency', 'legendCurrency', 'valCurrency', currency, totalAssetsOnly, ['usd', 'twd']);
+
+        const container = document.getElementById('assetListContainer');
+        const order = ['realestate', 'car', 'us', 'tw', 'bond', 'cash', 'debt'];
+        
+        order.forEach(key => {
+            const items = groups[key];
+            if(items && items.length > 0) {
+                let groupTotal = items.reduce((sum, item) => sum + item.valTWD, 0);
+                let isDebtGroup = (key === 'debt');
+                let displayTotal = Math.round(groupTotal).toLocaleString();
+                if(isDebtGroup) displayTotal = `- ${displayTotal}`;
+
+                let pct = 0;
+                if(isDebtGroup) {
+                    let totalLiabilities = totalDebtAbs + totalInterestAbs;
+                    if(totalLiabilities > 0) pct = (groupTotal / totalLiabilities * 100).toFixed(1);
+                } else {
+                    if(totalAssetsOnly > 0) pct = (groupTotal / totalAssetsOnly * 100).toFixed(1);
+                }
+
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'category-group';
+                groupDiv.innerHTML = `
+                    <div class="category-header ${isDebtGroup ? 'is-debt' : ''}" onclick="toggleGroup(this)">
+                        <div class="cat-title-area">
+                            <div class="cat-icon" style="background: ${colors[key]}"></div>
+                            <span class="cat-name">${typeLabels[key]}</span>
+                            <span class="cat-count">${items.length}</span>
+                        </div>
+                        <div class="cat-total-area">
+                            <span class="cat-amount">NT$ ${displayTotal}</span>
+                            <span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span>
+                        </div>
+                        <div class="arrow-icon">▼</div>
+                    </div>
+                    <div class="category-content"></div>
+                `;
+                const contentDiv = groupDiv.querySelector('.category-content');
+                items.forEach(item => {
+                    const isLiability = (item.category === 'debt' || item.category === 'interest');
+                    let itemSign = isLiability ? '-' : '';
+                    let itemClass = '';
+                    if (item.category === 'debt') itemClass = 'is-debt';
+                    if (item.category === 'interest') itemClass = 'is-interest';
+                    let tag = '';
+                    if(isLiability) tag = item.typeStr;
+                    else if(totalAssetsOnly > 0) tag = (item.valTWD / totalAssetsOnly * 100).toFixed(1) + '%';
+                    const itemEl = document.createElement('div');
+                    itemEl.className = `asset-item ${itemClass}`;
+                    itemEl.innerHTML = `
+                        <div class="asset-info"><h4>${item.name}</h4><p>${item.qty} 單位 • ${item.displayPrice}</p></div>
+                        <div class="asset-val">${itemSign} NT$ ${Math.round(item.valTWD).toLocaleString()}<small>${tag}</small></div>
+                    `;
+                    contentDiv.appendChild(itemEl);
+                });
+                container.appendChild(groupDiv);
+            }
+        });
+    }
+
+    function drawPie(chartId, legendId, valId, dataMap, total, keysOrder) {
+        if (total === 0) return;
+        let grad = []; let cur = 0;
+        for (let type of keysOrder) {
+            let val = dataMap[type] || 0;
+            if (val > 0) {
+                let deg = (val / total) * 360;
+                grad.push(`${colors[type]} ${cur}deg ${cur + deg}deg`);
+                cur += deg;
+            }
+        }
+        document.getElementById(chartId).style.background = `conic-gradient(${grad.join(', ')})`;
+        document.getElementById(valId).innerText = formatCompact(total);
+        const legendBox = document.getElementById(legendId);
+        legendBox.innerHTML = '';
+        for (let type of keysOrder) {
+            let val = dataMap[type] || 0;
+            if (val > 0) {
+                let pct = (val / total * 100).toFixed(1);
+                let valCompact = formatCompact(val);
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-dot" style="background: ${colors[type]}"></div><span class="legend-name">${typeLabels[type]} ${pct}% <span style="opacity:0.7;">(${valCompact})</span></span>`;
+                legendBox.appendChild(item);
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
