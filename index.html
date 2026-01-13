@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V28 CMS Link)</title>
+    <title>My Net Worth (V29 Minimal)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -20,7 +20,7 @@
             --text: #ffffff;
             --subtext: #8b9bb4;
             --accent: #4a90e2;
-            --edit-btn: #2ecc71; /* 編輯按鈕綠色 */
+            --edit-btn: #2ecc71;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -41,35 +41,39 @@
             background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 20px;
             border: 1px solid rgba(255,255,255,0.05);
         }
-        .config-box input {
-            width: 100%; background: #000; border: 1px solid #333; color: #fff;
-            padding: 12px; border-radius: 10px; font-size: 16px; margin-top: 8px; outline: none;
-        }
-        .config-label { font-size: 13px; color: var(--subtext); display: flex; justify-content: space-between; align-items: center;}
         
-        .config-actions { display: flex; gap: 10px; align-items: center; }
+        /* 隱藏的輸入框 (只留 CSV) */
+        .csv-input {
+            width: 100%; background: #000; border: 1px solid #333; color: #fff;
+            padding: 12px; border-radius: 10px; font-size: 14px; margin-top: 10px; outline: none;
+            color: #888; /* 讓連結看起來低調一點 */
+        }
+        .csv-input:focus { border-color: var(--accent); color: #fff; }
 
+        /* V29: 工具列佈局 */
+        .toolbar {
+            display: flex; justify-content: space-between; align-items: center;
+            width: 100%;
+        }
+        .toolbar-left { display: flex; gap: 10px; }
+        
         .btn-base {
             cursor: pointer; font-weight: 600; font-size: 12px;
-            padding: 4px 10px; border-radius: 6px; text-decoration: none;
-            display: inline-flex; align-items: center;
+            padding: 6px 12px; border-radius: 8px; text-decoration: none;
+            display: inline-flex; align-items: center; transition: opacity 0.2s;
         }
+        .btn-base:active { opacity: 0.7; }
+        .btn-refresh { color: var(--accent); background: rgba(74, 144, 226, 0.15); }
+        .btn-edit { color: var(--edit-btn); background: rgba(46, 204, 113, 0.15); }
 
-        .btn-refresh { 
-            color: var(--accent); background: rgba(74, 144, 226, 0.1); 
+        /* V29: 匯率顯示膠囊 */
+        .rate-pill {
+            font-size: 13px; color: #aaa; 
+            background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 8px;
+            display: flex; align-items: center; gap: 6px;
         }
-        
-        /* V28: 編輯按鈕樣式 */
-        .btn-edit {
-            color: var(--edit-btn); background: rgba(46, 204, 113, 0.1);
-        }
+        .rate-val { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
-        .rate-display { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #fff; }
-        .auto-badge {
-            font-size: 10px; background: rgba(0, 210, 211, 0.15); color: var(--auto-tag);
-            padding: 2px 6px; border-radius: 4px; display: none; white-space: nowrap;
-        }
-        
         header { text-align: center; margin-bottom: 30px; }
         .total-title { font-size: 14px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
         .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
@@ -183,22 +187,18 @@
 <div class="container">
     <div class="config-wrapper">
         <div class="config-box">
-            <div class="config-label">
-                <span>Google Sheet CSV Link</span>
-                <div class="config-actions">
-                    <a href="https://docs.google.com/spreadsheets/d/1HrG-LV9lYJ0c4OCBFmqz_gGGyIdWHHK92eNSyCPOCuU/edit?usp=drivesdk" target="_blank" class="btn-base btn-edit">📝 編輯數據</a>
+            <div class="toolbar">
+                <div class="toolbar-left">
+                    <a href="https://docs.google.com/spreadsheets/d/1HrG-LV9lYJ0c4OCBFmqz_gGGyIdWHHK92eNSyCPOCuU/edit?usp=drivesdk" target="_blank" class="btn-base btn-edit">📝 編輯</a>
                     <span class="btn-base btn-refresh" onclick="fetchData()">🔄 重整</span>
                 </div>
-            </div>
-            <input type="text" id="csvUrl" placeholder="貼上 CSV 連結..." onchange="saveUrl()">
-            
-            <div class="config-label" style="margin-top: 15px;">
-                <span>USD/TWD 匯率</span>
-                <div class="rate-display">
-                    <input type="number" id="usdRate" value="32.5" style="width: 70px; text-align:right;" onchange="manualRateChange()">
-                    <span id="autoBadge" class="auto-badge">AUTO (F2)</span>
+                <div class="rate-pill">
+                    <span>🇺🇸</span>
+                    <span id="rateDisplay" class="rate-val">32.5</span>
                 </div>
             </div>
+            
+            <input type="text" id="csvUrl" class="csv-input" placeholder="Google Sheet CSV 連結..." onchange="saveUrl()">
             <div id="errorMsg" class="error-text"></div>
         </div>
     </div>
@@ -273,11 +273,11 @@
     
     document.getElementById('csvUrl').value = localStorage.getItem('vibeSheetUrl') || '';
     let currentRate = parseFloat(localStorage.getItem('vibeUsdRate')) || 32.5;
-    document.getElementById('usdRate').value = currentRate;
+    document.getElementById('rateDisplay').innerText = currentRate; // V29: 更新文字顯示
     if(document.getElementById('csvUrl').value) fetchData();
 
     function saveUrl() { localStorage.setItem('vibeSheetUrl', document.getElementById('csvUrl').value); fetchData(); }
-    function manualRateChange() { currentRate = parseFloat(document.getElementById('usdRate').value); localStorage.setItem('vibeUsdRate', currentRate); document.getElementById('autoBadge').style.display = 'none'; fetchData(false); }
+    
     function csvSplit(str) {
         const result = []; let current = ''; let inQuote = false;
         for (let i = 0; i < str.length; i++) {
@@ -336,13 +336,14 @@
             const row2 = csvSplit(lines[1]); 
             if (row2.length >= 6) {
                 const r = parseFloat(row2[5].replace(/,/g, ''));
-                if (!isNaN(r) && r > 20 && r < 50) { currentRate = r; foundRate = true; }
+                if (!isNaN(r) && r > 20 && r < 50) { 
+                    currentRate = r; 
+                    // V29: 更新文字顯示
+                    document.getElementById('rateDisplay').innerText = currentRate;
+                    localStorage.setItem('vibeUsdRate', currentRate);
+                }
             }
         }
-        if (foundRate) {
-            document.getElementById('usdRate').value = currentRate;
-            document.getElementById('autoBadge').style.display = 'inline-block';
-        } else { document.getElementById('autoBadge').style.display = 'none'; }
 
         let totalNetWorth = 0; let totalAssetsOnly = 0;
         let totalDebtAbs = 0; let totalInterestAbs = 0;
