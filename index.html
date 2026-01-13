@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V27 Debt Chart)</title>
+    <title>My Net Worth (V28 CMS Link)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -20,6 +20,7 @@
             --text: #ffffff;
             --subtext: #8b9bb4;
             --accent: #4a90e2;
+            --edit-btn: #2ecc71; /* 編輯按鈕綠色 */
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -45,10 +46,24 @@
             padding: 12px; border-radius: 10px; font-size: 16px; margin-top: 8px; outline: none;
         }
         .config-label { font-size: 13px; color: var(--subtext); display: flex; justify-content: space-between; align-items: center;}
-        .btn-refresh { 
-            cursor: pointer; color: var(--accent); font-weight: 600; font-size: 12px;
-            background: rgba(74, 144, 226, 0.1); padding: 4px 10px; border-radius: 6px;
+        
+        .config-actions { display: flex; gap: 10px; align-items: center; }
+
+        .btn-base {
+            cursor: pointer; font-weight: 600; font-size: 12px;
+            padding: 4px 10px; border-radius: 6px; text-decoration: none;
+            display: inline-flex; align-items: center;
         }
+
+        .btn-refresh { 
+            color: var(--accent); background: rgba(74, 144, 226, 0.1); 
+        }
+        
+        /* V28: 編輯按鈕樣式 */
+        .btn-edit {
+            color: var(--edit-btn); background: rgba(46, 204, 113, 0.1);
+        }
+
         .rate-display { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #fff; }
         .auto-badge {
             font-size: 10px; background: rgba(0, 210, 211, 0.15); color: var(--auto-tag);
@@ -78,7 +93,6 @@
         }
         .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--subtext); width: 100%; text-align: center; }
         
-        /* 圓餅圖容器 */
         .chart-container {
             width: 160px; height: 160px; border-radius: 50%; margin-bottom: 15px;
             background: #333; position: relative;
@@ -171,7 +185,10 @@
         <div class="config-box">
             <div class="config-label">
                 <span>Google Sheet CSV Link</span>
-                <span class="btn-refresh" onclick="fetchData()">🔄 重整</span>
+                <div class="config-actions">
+                    <a href="https://docs.google.com/spreadsheets/d/1HrG-LV9lYJ0c4OCBFmqz_gGGyIdWHHK92eNSyCPOCuU/edit?usp=drivesdk" target="_blank" class="btn-base btn-edit">📝 編輯數據</a>
+                    <span class="btn-base btn-refresh" onclick="fetchData()">🔄 重整</span>
+                </div>
             </div>
             <input type="text" id="csvUrl" placeholder="貼上 CSV 連結..." onchange="saveUrl()">
             
@@ -333,7 +350,6 @@
         let liquidity = { liquid: 0, fixed: 0 };
         let currency = { usd: 0, twd: 0 };
         let leverage = { networth: 0, debt: 0, interest: 0 };
-        // V27: 增加 debtBreakdown 用來畫負債圓餅圖
         let debtBreakdown = { debt: 0, interest: 0 };
         let groups = { realestate: [], car: [], us: [], tw: [], bond: [], cash: [], debt: [] };
 
@@ -394,9 +410,7 @@
         document.getElementById('displayTotal').innerText = Math.round(totalNetWorth).toLocaleString();
         
         drawStructureBar(leverage, totalGrossAssets);
-        // V27: 繪製負債圓餅圖
         drawPie('chartDebt', 'legendDebt', 'valDebt', debtBreakdown, totalLiabilities, ['debt', 'interest']);
-        
         drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'us', 'tw', 'bond', 'cash']);
         drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
         drawPie('chartCurrency', 'legendCurrency', 'valCurrency', currency, totalAssetsOnly, ['usd', 'twd']);
