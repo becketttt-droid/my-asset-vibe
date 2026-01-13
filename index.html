@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V30 Cash Separated)</title>
+    <title>My Net Worth (V31 Trend)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -20,6 +20,7 @@
             --text: #ffffff;
             --subtext: #8b9bb4;
             --accent: #4a90e2;
+            --trend: #00d2d3; /* 趨勢線顏色 */
             --edit-btn: #2ecc71;
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
@@ -49,10 +50,7 @@
         }
         .csv-input:focus { border-color: var(--accent); color: #fff; }
 
-        .toolbar {
-            display: flex; justify-content: space-between; align-items: center;
-            width: 100%;
-        }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .toolbar-left { display: flex; gap: 10px; }
         
         .btn-base {
@@ -71,10 +69,31 @@
         }
         .rate-val { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
-        header { text-align: center; margin-bottom: 30px; }
+        header { text-align: center; margin-bottom: 20px; }
         .total-title { font-size: 14px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
         .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
         .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
+
+        /* --- V31: 趨勢圖樣式 (SVG) --- */
+        .trend-wrapper {
+            width: 100%; height: 120px; margin-bottom: 30px; position: relative;
+            background: linear-gradient(180deg, rgba(0,210,211,0.05) 0%, rgba(0,0,0,0) 100%);
+            border-radius: 12px; overflow: hidden;
+            display: none; /* 有數據才顯示 */
+        }
+        .trend-svg { width: 100%; height: 100%; display: block; cursor: crosshair; }
+        .trend-line { fill: none; stroke: var(--trend); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+        .trend-area { fill: rgba(0, 210, 211, 0.1); stroke: none; }
+        .trend-dot { fill: var(--bg); stroke: var(--trend); stroke-width: 2; r: 4; }
+        
+        /* Tooltip */
+        .trend-tooltip {
+            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.8); padding: 4px 10px; border-radius: 6px;
+            font-size: 12px; color: #fff; pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            border: 1px solid rgba(255,255,255,0.1); white-space: nowrap;
+        }
+        .trend-tooltip.visible { opacity: 1; }
 
         /* Charts Layout */
         .charts-wrapper {
@@ -108,39 +127,30 @@
         .chart-inner .inner-label { font-size: 10px; color: #888; margin-top: 2px; }
 
         /* Structure Bar */
-        .structure-container {
-            width: 100%; margin-bottom: 20px; padding: 0 10px;
-        }
+        .structure-container { width: 100%; margin-bottom: 20px; padding: 0 10px; }
         .structure-bar {
             width: 100%; height: 24px; background: #333; border-radius: 12px;
             display: flex; overflow: hidden; margin-bottom: 10px;
         }
         .struct-seg { height: 100%; transition: width 0.5s ease; }
-        .struct-metrics {
-            display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext);
-        }
+        .struct-metrics { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext); }
         .struct-metric-item { text-align: center; }
         .metric-big.net-highlight { color: #3498db; }
         .metric-big { font-size: 18px; font-weight: bold; color: #fff; display: block; }
         .metric-label { font-size: 10px; opacity: 0.7; }
 
-        /* Legend */
         .legend-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
         .legend-item {
             display: flex; align-items: center;
             background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px;
-            font-size: 11px; border: 1px solid rgba(255,255,255,0.05);
-            white-space: nowrap;
+            font-size: 11px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap;
         }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
         /* Accordion */
         .category-group { margin-bottom: 15px; border-radius: 16px; overflow: hidden; background-color: var(--card); transition: all 0.3s ease; }
         .category-group.open { box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .category-header {
-            padding: 20px; display: flex; justify-content: space-between; align-items: center;
-            cursor: pointer; background-color: var(--card); min-height: 44px;
-        }
+        .category-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background-color: var(--card); min-height: 44px; }
         .cat-title-area { display: flex; align-items: center; gap: 12px; }
         .cat-icon { width: 10px; height: 10px; border-radius: 50%; }
         .cat-name { font-size: 16px; font-weight: bold; color: #fff; }
@@ -153,10 +163,7 @@
         .category-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: rgba(0,0,0,0.2); }
         .category-group.open .category-content { max-height: 2000px; }
 
-        .asset-item {
-            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
+        .asset-item { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
         .asset-item:last-child { border-bottom: none; }
         .asset-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #ddd; }
         .asset-info p { margin: 0; font-size: 12px; color: var(--subtext); }
@@ -203,6 +210,11 @@
         <div class="total-title">NET WORTH</div>
         <div class="total-amount"><span class="currency-tag">NT$</span> <span id="displayTotal">0</span></div>
     </header>
+
+    <div id="trendChartWrapper" class="trend-wrapper">
+        <div id="trendTooltip" class="trend-tooltip"></div>
+        <svg id="trendSvg" class="trend-svg" viewBox="0 0 1000 200" preserveAspectRatio="none"></svg>
+    </div>
 
     <div class="charts-wrapper">
         <div class="chart-card">
@@ -256,20 +268,12 @@
 </div>
 
 <script>
-    // V30: 定義獨立的類別顏色
     const colors = { 
-        us_stock: '#4a90e2', // 美股 (藍)
-        tw_stock: '#e91e63', // 台股 (桃紅)
-        bond: '#f1c40f', 
-        cash: '#2ecc71',     // 存款 (綠)
-        realestate: '#9b59b6', 
-        car: '#e67e22', 
-        debt: '#ff4757', 
-        interest: '#3f51b5',
+        us_stock: '#4a90e2', tw_stock: '#e91e63', bond: '#f1c40f', cash: '#2ecc71', realestate: '#9b59b6', 
+        car: '#e67e22', debt: '#ff4757', interest: '#3f51b5',
         liquid: '#2ecc71', fixed: '#9b59b6', usd: '#4a90e2', twd: '#e91e63', networth: '#3498db'
     };
     
-    // V30: 獨立顯示名稱
     const typeLabels = { 
         us_stock: '美股', tw_stock: '台股', bond: '債券', cash: '現金/存款', 
         realestate: '房產', car: '車輛', 
@@ -351,21 +355,17 @@
         let totalNetWorth = 0; let totalAssetsOnly = 0;
         let totalDebtAbs = 0; let totalInterestAbs = 0;
         
-        // V30: 嚴格分類容器
         let cats = { us_stock:0, tw_stock:0, bond:0, cash:0, realestate:0, car:0, debt:0, interest:0 };
-        
         let liquidity = { liquid: 0, fixed: 0 };
         let currency = { usd: 0, twd: 0 };
         let leverage = { networth: 0, debt: 0, interest: 0 };
         let debtBreakdown = { debt: 0, interest: 0 };
         
-        // V30: 分組清單
+        // V31: 歷史數據容器
+        let historyData = [];
+
         let groups = { 
-            realestate: [], car: [], 
-            cash: [], // 獨立存款
-            us_stock: [], // 獨立美股
-            tw_stock: [], // 獨立台股
-            bond: [], debt: [] 
+            realestate: [], car: [], cash: [], us_stock: [], tw_stock: [], bond: [], debt: [] 
         };
 
         for (let i = 1; i < lines.length; i++) {
@@ -378,10 +378,14 @@
             if (isNaN(qty) || isNaN(price)) continue;
 
             const typeStr = row[0].toLowerCase().trim(); const name = row[1]; 
-            let category = 'cash'; // 預設值 (V30: 如果沒抓到別的，就當作現金)
-            let displayCategory = 'cash';
+            let category = 'cash'; let displayCategory = 'cash';
             
-            // --- V30: 新的分類邏輯 (優先權：負債 > 資產類別 > 國家) ---
+            // --- V31: 歷史資料攔截 ---
+            if (typeStr === 'history') {
+                historyData.push({ date: name, val: price * qty }); // name是日期, price是淨值
+                continue; // 跳過，不算入總資產
+            }
+
             if (typeStr === 'debt') { 
                 category = 'debt'; displayCategory = 'debt'; 
             } else if (typeStr === 'interest') { 
@@ -392,29 +396,20 @@
                 category = 'car'; displayCategory = 'car'; 
             } else if (typeStr.includes('bond')) { 
                 category = 'bond'; displayCategory = 'bond'; 
-            } 
-            // 存款優先判定
-            else if (typeStr.includes('cash') || typeStr.includes('deposit') || typeStr.includes('bank') || typeStr.includes('saving') || typeStr.includes('money') || typeStr === 'twd') {
+            } else if (typeStr.includes('cash') || typeStr.includes('deposit') || typeStr.includes('bank') || typeStr.includes('saving') || typeStr.includes('money') || typeStr === 'twd') {
                 category = 'cash'; displayCategory = 'cash';
-            }
-            // 剩下的如果是 us -> 美股
-            else if (typeStr.includes('us')) { 
+            } else if (typeStr.includes('us')) { 
                 category = 'us_stock'; displayCategory = 'us_stock'; 
-            } 
-            // 剩下的如果是 tw -> 台股
-            else if (typeStr.includes('stock') || typeStr.includes('tw') || typeStr.includes('0050')) { 
+            } else if (typeStr.includes('stock') || typeStr.includes('tw') || typeStr.includes('0050')) { 
                 category = 'tw_stock'; displayCategory = 'tw_stock'; 
             }
 
             let valTWD = 0; let displayPrice = '';
-            // 判斷是否為美元計價 (美股 or USD現金)
-            // 這裡邏輯：如果是 'us_stock' 或 type 裡有 'us'/'usd' 且不是 'twd'
             const isAssetUSD = (category === 'us_stock') || (typeStr.includes('us') && !typeStr.includes('twd'));
 
             if (isAssetUSD) { valTWD = qty * price * currentRate; displayPrice = `US$ ${price.toLocaleString()}`; } 
             else { valTWD = qty * price; displayPrice = `NT$ ${price.toLocaleString()}`; }
 
-            // 統計
             if(!cats[category]) cats[category] = 0; cats[category] += valTWD;
             
             if (category === 'debt') { 
@@ -423,9 +418,7 @@
                 totalNetWorth -= valTWD; totalInterestAbs += valTWD; debtBreakdown.interest += valTWD;
             } else {
                 totalNetWorth += valTWD; totalAssetsOnly += valTWD;
-                // 流動性：房產、車子算固定，其他算流動
                 if (['realestate','car'].includes(category)) liquidity.fixed += valTWD; else liquidity.liquid += valTWD;
-                // 幣別：美股 或 USD現金 算美元
                 if (isAssetUSD) currency.usd += valTWD; else currency.twd += valTWD;
             }
 
@@ -443,15 +436,16 @@
 
         document.getElementById('displayTotal').innerText = Math.round(totalNetWorth).toLocaleString();
         
+        // V31: 繪製趨勢圖
+        drawTrendChart(historyData, totalNetWorth);
+
         drawStructureBar(leverage, totalGrossAssets);
         drawPie('chartDebt', 'legendDebt', 'valDebt', debtBreakdown, totalLiabilities, ['debt', 'interest']);
-        // V30: 資產配置圖也更新分類
         drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond']);
         drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
         drawPie('chartCurrency', 'legendCurrency', 'valCurrency', currency, totalAssetsOnly, ['usd', 'twd']);
 
         const container = document.getElementById('assetListContainer');
-        // V30: 卡片顯示順序 (現金放前面一點)
         const order = ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond', 'debt'];
         
         order.forEach(key => {
@@ -507,6 +501,93 @@
                 container.appendChild(groupDiv);
             }
         });
+    }
+
+    // V31: 繪製趨勢圖 (SVG)
+    function drawTrendChart(history, currentVal) {
+        const wrapper = document.getElementById('trendChartWrapper');
+        const svg = document.getElementById('trendSvg');
+        const tooltip = document.getElementById('trendTooltip');
+        
+        // 如果沒有歷史數據，隱藏圖表
+        if (!history || history.length === 0) {
+            wrapper.style.display = 'none';
+            return;
+        }
+        
+        // 顯示圖表
+        wrapper.style.display = 'block';
+        
+        // 整理數據 (加入當前值作為最後一點)
+        // 確保按時間排序 (這裡假設用戶輸入順序正確，或是可以加個 sort)
+        let points = [...history]; 
+        // 這裡可以選擇是否把「現在」自動加為最新點，讓線圖連到今天
+        // points.push({ date: 'Now', val: currentVal }); 
+
+        // 找出最大最小值以縮放
+        let vals = points.map(p => p.val);
+        let maxVal = Math.max(...vals);
+        let minVal = Math.min(...vals);
+        let range = maxVal - minVal;
+        if(range === 0) range = 1; // 避免除以零
+
+        // SVG 尺寸
+        const w = 1000;
+        const h = 200;
+        const padding = 20;
+        
+        let pathD = "";
+        let areaD = "";
+        let circles = "";
+        
+        // 繪製路徑
+        points.forEach((p, i) => {
+            let x = (i / (points.length - 1)) * w;
+            if(points.length === 1) x = w/2; // 只有一點時置中
+            
+            // Y軸反轉 (數值大在上面)
+            let normalizedY = (p.val - minVal) / range;
+            let y = h - (normalizedY * (h - padding*2) + padding);
+            
+            if (i === 0) {
+                pathD += `M ${x} ${y}`;
+                areaD += `M ${x} ${h} L ${x} ${y}`;
+            } else {
+                pathD += ` L ${x} ${y}`;
+                areaD += ` L ${x} ${y}`;
+            }
+            
+            // 互動點 (透明的大圓圈用於觸發，實心小圓圈用於顯示)
+            circles += `<circle cx="${x}" cy="${y}" r="4" class="trend-dot" />`;
+            // 隱形觸控區
+            circles += `<rect x="${x-20}" y="0" width="40" height="${h}" fill="transparent" 
+                        ontouchstart="showTooltip(evt, '${p.date}', ${p.val}, ${x})" 
+                        onmousemove="showTooltip(evt, '${p.date}', ${p.val}, ${x})" 
+                        onmouseout="hideTooltip()" />`;
+        });
+        
+        areaD += ` L ${points[points.length-1].length === 1 ? w/2 : w} ${h} Z`;
+
+        svg.innerHTML = `
+            <path d="${areaD}" class="trend-area" />
+            <path d="${pathD}" class="trend-line" />
+            ${circles}
+        `;
+    }
+
+    // V31: Tooltip 互動邏輯
+    window.showTooltip = function(evt, date, val, x) {
+        const tooltip = document.getElementById('trendTooltip');
+        tooltip.innerHTML = `${date}<br>NT$ ${formatCompact(val)}`;
+        tooltip.classList.add('visible');
+        // 計算位置 (簡單處理)
+        // 由於 SVG 是 viewBox，這裡 x 是 SVG 座標，需要轉換或是簡單用 CSS 居中
+        // 為了簡單，我們直接讓 tooltip 顯示在上方，不隨滑鼠 X 移動 (因為手機觸控不準)
+    }
+    
+    window.hideTooltip = function() {
+        const tooltip = document.getElementById('trendTooltip');
+        tooltip.classList.remove('visible');
     }
 
     function drawStructureBar(data, total) {
