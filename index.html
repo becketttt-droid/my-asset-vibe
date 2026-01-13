@@ -7,12 +7,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="My Assets">
-    
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V22 iOS App)</title>
+    <title>My Net Worth (V23 Fix)</title>
     <style>
+        /* --- V23 關鍵修正：全域 Box-Sizing --- */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
         :root {
             --bg: #0f1115;
             --card: #1c1e24;
@@ -22,7 +24,6 @@
             --accent: #4a90e2;
             --loading: #f39c12;
             --auto-tag: #00d2d3;
-            /* iOS 安全區域設定 (避開瀏海) */
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -31,11 +32,9 @@
             background-color: var(--bg); color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0; 
-            /* 讓內容避開瀏海與 Home Bar */
             padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom)) 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
-            -webkit-tap-highlight-color: transparent; /* 移除點擊高亮 */
         }
 
         .container { 
@@ -47,21 +46,32 @@
         .config-wrapper { width: 100%; max-width: 500px; margin: 0 auto; }
 
         .config-box {
-            background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.05);
         }
         .config-box input {
-            width: 100%; background: #000; border: 1px solid #333; color: #fff;
-            padding: 10px; border-radius: 8px; font-size: 13px; margin-top: 5px;
-            /* 防止輸入時畫面放大 */
-            font-size: 16px; 
+            width: 100%; /* 現在加上 box-sizing 後，這裡的 100% 不會再突出了 */
+            background: #000; border: 1px solid #333; color: #fff;
+            padding: 12px; border-radius: 10px; font-size: 16px; margin-top: 8px;
+            outline: none; transition: border 0.3s;
         }
-        .config-label { font-size: 12px; color: var(--subtext); display: flex; justify-content: space-between; align-items: center;}
-        .btn-refresh { cursor: pointer; color: var(--accent); font-weight: bold;}
+        .config-box input:focus { border-color: var(--accent); }
+
+        .config-label { font-size: 13px; color: var(--subtext); display: flex; justify-content: space-between; align-items: center;}
+        
+        /* 優化按鈕樣式 */
+        .btn-refresh { 
+            cursor: pointer; color: var(--accent); font-weight: 600; font-size: 12px;
+            background: rgba(74, 144, 226, 0.1); padding: 4px 10px; border-radius: 6px;
+            transition: background 0.2s;
+        }
+        .btn-refresh:active { background: rgba(74, 144, 226, 0.2); }
+
         .rate-display { display: flex; align-items: center; gap: 8px; font-size: 14px; color: #fff; }
         .auto-badge {
             font-size: 10px; background: rgba(0, 210, 211, 0.15); color: var(--auto-tag);
             padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(0, 210, 211, 0.3);
-            display: none;
+            display: none; white-space: nowrap;
         }
         
         header { text-align: center; margin-bottom: 30px; }
@@ -74,7 +84,6 @@
             display: flex; gap: 15px; overflow-x: auto; 
             padding-bottom: 10px; margin-bottom: 20px;
             scroll-snap-type: x mandatory;
-            /* 隱藏滾動條 */
             scrollbar-width: none; 
         }
         .charts-wrapper::-webkit-scrollbar { display: none; }
@@ -121,7 +130,6 @@
             background-color: var(--card);
             border-bottom: 1px solid transparent;
             transition: background-color 0.2s;
-            /* 增加觸控區域 */
             min-height: 44px;
         }
         .category-header:active { background-color: var(--card-hover); }
