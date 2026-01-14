@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V57 Draw Fix)</title>
+    <title>My Net Worth (V58 Fix Layout)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -149,21 +149,9 @@
         /* --- Trend Chart --- */
         .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
-        
-        .trend-line { 
-            fill: none; stroke: var(--trend-line); stroke-width: 2.5; 
-            stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
-            /* Animation handled by JS to ensure sync */
-        }
-        
-        /* V57: Area starts invisible to allow line to draw first */
-        .trend-area { 
-            fill: url(#trendGradient); stroke: none; 
-            opacity: 0; 
-            transition: opacity 1s ease 1.5s; /* Fade in after line finishes (approx) */
-        }
+        .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+        .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0; transition: opacity 1s ease 1.5s; }
         .trend-area.visible { opacity: 0.6; }
-
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 2s; }
         .chart-label.visible { opacity: 1; }
@@ -208,9 +196,15 @@
         .legend-item { display: flex; align-items: center; background: #222; padding: 4px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #333; white-space: nowrap; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
-        /* Asset List */
-        .asset-list-container { display: grid; gap: 12px; }
+        /* Asset List (V58: Fixed Grid Alignment) */
+        .asset-list-container { 
+            display: grid; 
+            gap: 12px; 
+            /* V58 FIX: Align items to start so they don't stretch neighbor height */
+            align-items: start; 
+        }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
+        
         .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); opacity: 0; transform: translateY(20px); }
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
@@ -368,7 +362,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V57.0<br>Perfect Draw & No Decimals
+                Vibe Coding V58.0<br>Layout Fixed
             </div>
         </div>
     </div>
@@ -462,7 +456,7 @@
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
-        // V57: Replay & Sync Home Animations
+        // Replay Animations
         if(pageId === 'home') {
             if(window.cachedTotal) {
                 let displayNum = window.cachedTotal;
@@ -481,25 +475,21 @@
                 setTimeout(() => b.style.width = w, 50); 
             });
 
-            // V57: Double RAF to ensure Line Draw triggers correctly
+            // Double RAF to ensure Line Draw triggers correctly
             requestAnimationFrame(() => {
                 const line = document.querySelector('.trend-line');
                 const area = document.querySelector('.trend-area');
                 if(line) {
-                    // Reset
                     line.style.transition = 'none';
                     line.style.strokeDasharray = line.getTotalLength();
                     line.style.strokeDashoffset = line.getTotalLength();
                     if(area) area.classList.remove('visible');
                     
-                    // Force Reflow & Animate
                     requestAnimationFrame(() => {
                         line.getBoundingClientRect(); 
                         line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
                         line.style.strokeDashoffset = '0';
-                        // Fade in Area
                         if(area) {
-                            // Wait for reflow before setting timeout to align with transition
                             setTimeout(() => area.classList.add('visible'), 100); 
                         }
                     });
@@ -556,7 +546,6 @@
             
             const currentVal = easeProgress * (end - start) + start;
             
-            // V57: Strict rounding during animation
             let displayStr = Math.round(currentVal).toLocaleString();
             
             let sign = isNegative ? "- " : "";
@@ -565,7 +554,6 @@
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                // V57: Strict rounding for final value
                 let finalStr = Math.round(end).toLocaleString();
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
@@ -592,7 +580,6 @@
     }
     
     function formatChineseCurrency(num) {
-        // V57: Strict Rounding
         if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
         if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
@@ -732,14 +719,13 @@
         let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
         let totalLiabilities = totalDebtAbs + totalInterestAbs;
 
-        // V57: Header Logic (Round Everything)
         window.cachedTotal = totalNetWorth;
         let displayNum = totalNetWorth;
         let suffix = "";
         if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
         else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
         
-        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, "", "");
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, totalNetWorth < 0, "", "");
         document.getElementById('displayUnit').innerText = suffix;
         
         drawTrendChart(historyData, totalNetWorth);
@@ -902,25 +888,20 @@
         const group = document.getElementById('crosshairGroup').outerHTML;
         svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
         
-        // V57: Double RAF to ensure Line Draw triggers correctly
         requestAnimationFrame(() => {
             const line = svg.querySelector('.trend-line');
             const area = svg.querySelector('.trend-area');
             if(line) {
-                // Reset
                 line.style.transition = 'none';
                 line.style.strokeDasharray = line.getTotalLength();
                 line.style.strokeDashoffset = line.getTotalLength();
                 if(area) area.classList.remove('visible');
                 
-                // Force Reflow & Animate
                 requestAnimationFrame(() => {
                     line.getBoundingClientRect(); 
                     line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
                     line.style.strokeDashoffset = '0';
-                    // Fade in Area
                     if(area) {
-                        // Wait for reflow before setting timeout to align with transition
                         setTimeout(() => area.classList.add('visible'), 100); 
                     }
                 });
@@ -982,7 +963,7 @@
             if (nearest.val !== 0) pct = (diff / nearest.val) * 100;
             
             let sign = diff >= 0 ? "+" : "";
-            let diffStr = sign + pct.toFixed(1) + "% to Today";
+            let diffStr = sign + pct.toFixed(0) + "% to Today";
             
             hudDelta.innerText = diffStr;
             hudDelta.className = 'hud-delta'; 
@@ -1048,7 +1029,6 @@
         const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
         
-        // V57: No Decimals in Pie
         document.getElementById(valId).innerText = formatCompact(Math.round(total));
 
         const legendBox = document.getElementById(legendId);
