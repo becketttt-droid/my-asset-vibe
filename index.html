@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V50 Pro Layout)</title>
+    <title>My Net Worth (V51 Swipe & Units)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -54,23 +54,29 @@
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
+            touch-action: pan-y; /* V51: Allow vertical scroll, handle horizontal manually */
         }
 
-        .container { width: 100%; max-width: 1100px; position: relative; }
+        .container { width: 100%; max-width: 1100px; position: relative; min-height: 80vh; }
 
-        /* Page Transitions */
+        /* V51: Advanced Page Transitions (Slide effect) */
         .page { 
-            display: none; opacity: 0;
-            transform: translateY(20px) scale(0.98);
-            transform-origin: center top;
+            display: none; 
+            width: 100%;
         }
-        .page.active { 
-            display: block; 
-            animation: pageEnter 0.5s var(--ease-out-expo) forwards;
+        .page.active { display: block; }
+        
+        /* Slide Animations */
+        .slide-in-right { animation: slideInRight 0.3s var(--ease-out-expo) forwards; }
+        .slide-in-left { animation: slideInLeft 0.3s var(--ease-out-expo) forwards; }
+        
+        @keyframes slideInRight { 
+            from { opacity: 0; transform: translateX(30px); } 
+            to { opacity: 1; transform: translateX(0); } 
         }
-        @keyframes pageEnter { 
-            from { opacity: 0; transform: translateY(20px) scale(0.98); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
+        @keyframes slideInLeft { 
+            from { opacity: 0; transform: translateX(-30px); } 
+            to { opacity: 1; transform: translateX(0); } 
         }
 
         /* Navigation Bar */
@@ -194,63 +200,29 @@
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
         
-        /* V50: Grid Layout for Header - Strict Alignment */
         .category-header { 
-            padding: 15px 20px; 
-            min-height: 70px;
-            cursor: pointer;
-            display: grid;
-            grid-template-columns: auto 1fr auto; /* [Left Content] [Spacer] [Arrow] */
-            align-items: center;
-            gap: 15px;
+            padding: 15px 20px; min-height: 70px; cursor: pointer;
+            display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 15px;
         }
         
-        /* Left Side (Icon + Name + Badge) -> Nested Flex */
-        .cat-left-content {
-            display: flex; align-items: center; gap: 12px;
-        }
-
-        .cat-icon-box { 
-            width: 36px; height: 36px; 
-            border-radius: 10px; 
-            display: flex; justify-content: center; align-items: center; 
-            transition: transform 0.3s var(--ease-elastic); 
-            flex-shrink: 0;
-        }
+        .cat-left-content { display: flex; align-items: center; gap: 12px; }
+        .cat-icon-box { width: 36px; height: 36px; border-radius: 10px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); flex-shrink: 0;}
         .category-group:hover .cat-icon-box { transform: scale(1.1); }
         .cat-icon-box svg { width: 20px; height: 20px; }
-        
-        .cat-text-info {
-            display: flex; align-items: baseline; gap: 8px;
-        }
+        .cat-text-info { display: flex; align-items: baseline; gap: 8px; }
         .cat-name { font-size: 16px; font-weight: bold; color: #fff; white-space: nowrap; }
-        .cat-count { 
-            font-size: 11px; color: var(--subtext); background: #222; 
-            padding: 2px 8px; border-radius: 10px; 
-            white-space: nowrap;
-        }
-
-        /* Right Side (Amount + Percent) -> Nested Grid/Flex */
-        .cat-right-content {
-            display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
-            margin-right: 5px; /* Spacing before arrow */
-        }
+        .cat-count { font-size: 11px; color: var(--subtext); background: #222; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
         
-        /* V50: Monospace + Tight Alignment */
+        .cat-right-content { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; margin-right: 5px; }
         .cat-amount { 
             font-size: 17px; font-weight: bold; color: #fff; 
-            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace; /* Tabular nums */
-            letter-spacing: 0.5px;
-            line-height: 1.2;
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
+            letter-spacing: 0.5px; line-height: 1.2;
         }
         .cat-pct { font-size: 11px; color: var(--subtext); margin-top: 3px; }
         
-        .arrow-icon { 
-            transition: transform 0.3s ease; opacity: 0.5; font-size: 12px; 
-            display: flex; align-items: center; justify-content: center;
-        }
+        .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; font-size: 12px; display: flex; align-items: center; justify-content: center;}
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
-        
         .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ease-out-expo); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
 
@@ -272,7 +244,7 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="mainContainer">
     <div id="page-home" class="page active">
         <header>
             <div class="total-title">NET WORTH</div>
@@ -386,7 +358,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V50.0<br>Grid Alignment + Inertia Scroll
+                Vibe Coding V51.0<br>Swipe & Units
             </div>
         </div>
     </div>
@@ -440,11 +412,66 @@
     document.getElementById('rateDisplay').innerText = currentRate;
     if(document.getElementById('csvUrl').value) fetchData();
 
-    function switchPage(pageId, navEl) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-        document.getElementById('page-' + pageId).classList.add('active');
+    // V51: Swipe Logic
+    const pages = ['home', 'analysis', 'list', 'settings'];
+    const container = document.getElementById('mainContainer');
+    let startX = 0;
+    
+    document.addEventListener('touchstart', e => {
+        startX = e.touches[0].clientX;
+    }, {passive: true});
+
+    document.addEventListener('touchend', e => {
+        const endX = e.changedTouches[0].clientX;
+        const diff = startX - endX;
+        
+        // Threshold for swipe (e.g., 50px)
+        if (Math.abs(diff) > 50) {
+            // Find current active page index
+            const activePage = document.querySelector('.page.active');
+            const currentIndex = pages.indexOf(activePage.id.replace('page-', ''));
+            
+            if (diff > 0) {
+                // Swipe Left -> Next Page
+                if (currentIndex < pages.length - 1) {
+                    switchPage(pages[currentIndex + 1], null, 'left');
+                }
+            } else {
+                // Swipe Right -> Prev Page
+                if (currentIndex > 0) {
+                    switchPage(pages[currentIndex - 1], null, 'right');
+                }
+            }
+        }
+    }, {passive: true});
+
+    function switchPage(pageId, navEl, direction = 'none') {
+        const targetPage = document.getElementById('page-' + pageId);
+        const allPages = document.querySelectorAll('.page');
+        
+        // Remove animation classes
+        allPages.forEach(p => {
+            p.classList.remove('active', 'slide-in-right', 'slide-in-left');
+        });
+        
+        // Add animation based on direction
+        if (direction === 'left') {
+            targetPage.classList.add('slide-in-right');
+        } else if (direction === 'right') {
+            targetPage.classList.add('slide-in-left');
+        } else {
+            // Default fade for tap
+            targetPage.style.animation = 'pageEnter 0.5s var(--ease-out-expo) forwards';
+        }
+        
+        targetPage.classList.add('active');
+        
+        // Update Nav
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        navEl.classList.add('active');
+        // Find corresponding nav item
+        const navIndex = pages.indexOf(pageId);
+        const navItems = document.querySelectorAll('.nav-item');
+        if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
         if(pageId === 'analysis') {
             document.querySelectorAll('.chart-card').forEach(card => {
@@ -465,41 +492,65 @@
                 }, index * 80);
             });
 
-            // V50: New EaseOutQuint Animation (Slow tail)
             document.querySelectorAll('.cat-amount').forEach(el => {
                 const targetText = el.getAttribute('data-value');
                 if(targetText) {
                     const cleanVal = targetText.replace(/[^0-9.-]+/g,"");
-                    // Increased duration to 2500ms to show the slow-down effect
-                    animateValue(el, 0, parseFloat(cleanVal), 2500, targetText.includes('-'));
+                    // V51: Format text logic
+                    const num = parseFloat(cleanVal);
+                    // Pass formatted suffix info to animator
+                    let suffix = "";
+                    let displayNum = num;
+                    
+                    if(Math.abs(num) >= 100000000) {
+                        suffix = " 億";
+                        displayNum = num / 100000000;
+                    } else if (Math.abs(num) >= 10000) {
+                        suffix = " 萬";
+                        displayNum = num / 10000;
+                    }
+                    
+                    animateValue(el, 0, displayNum, 2500, targetText.includes('-'), suffix);
                 }
             });
         }
     }
 
-    // V50: Custom Easing - EaseOutQuint
-    // Formula: 1 - pow(1 - x, 5) -> Starts fast, very slow end
-    function animateValue(obj, start, end, duration, isNegative) {
+    // V51: Updated Animator with Suffix
+    function animateValue(obj, start, end, duration, isNegative, suffix) {
         let startTimestamp = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            
-            // Ease Out Quint: Stronger deceleration than Expo for "rolling" feel
             const easeProgress = 1 - Math.pow(1 - progress, 5);
             
-            const currentVal = Math.floor(easeProgress * (end - start) + start);
+            // Calculate current value (keep decimals for small rolling)
+            const currentVal = easeProgress * (end - start) + start;
             
-            let displayStr = Math.abs(currentVal).toLocaleString();
+            // Format: if suffix exists, show 2 decimals usually, else integer
+            let displayStr = "";
+            if (suffix) {
+                displayStr = currentVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            } else {
+                displayStr = Math.floor(currentVal).toLocaleString();
+            }
+            
             if(isNegative) displayStr = '- ' + displayStr;
-            obj.innerHTML = "NT$ " + displayStr;
+            obj.innerHTML = "NT$ " + displayStr + suffix;
             
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                let finalStr = Math.abs(end).toLocaleString();
+                // Final State
+                let finalStr = "";
+                if (suffix) {
+                    finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                    finalStr = Math.round(end).toLocaleString();
+                }
+                
                 if(isNegative) finalStr = '- ' + finalStr;
-                obj.innerHTML = "NT$ " + finalStr;
+                obj.innerHTML = "NT$ " + finalStr + suffix;
             }
         };
         window.requestAnimationFrame(step);
@@ -521,6 +572,13 @@
         if (num >= 100000000) return (num / 100000000).toFixed(2) + '億';
         if (num >= 10000) return (num / 10000).toFixed(0) + '萬';
         return (num / 1000).toFixed(1) + 'k';
+    }
+    
+    // V51: Helper for Chinese Currency
+    function formatChineseCurrency(num) {
+        if (Math.abs(num) >= 100000000) return (num / 100000000).toFixed(2) + ' 億';
+        if (Math.abs(num) >= 10000) return (num / 10000).toFixed(2) + ' 萬'; // Using 2 decimals for precision
+        return Math.round(num).toLocaleString();
     }
     
     function formatTrendVal(num) {
@@ -666,7 +724,9 @@
             if(items && items.length > 0) {
                 let groupTotal = items.reduce((sum, item) => sum + item.valTWD, 0);
                 let isDebtGroup = (key === 'debt');
-                let displayTotal = Math.round(groupTotal).toLocaleString();
+                
+                // V51: Use Format Helper for initial static display (prevents flicker before anim)
+                let displayTotal = formatChineseCurrency(groupTotal);
                 if(isDebtGroup) displayTotal = `- ${displayTotal}`;
 
                 let pct = 0;
@@ -694,12 +754,10 @@
                                 <span class="cat-count">${items.length}</span>
                             </div>
                         </div>
-                        
-                        <div class="cat-right-content">
+                        <div class="cat-total-area">
                             <span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span>
                             <span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span>
                         </div>
-                        
                         <div class="arrow-icon">▼</div>
                     </div>
                     <div class="category-content"></div>
