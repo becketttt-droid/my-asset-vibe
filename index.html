@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V52 iOS Motion)</title>
+    <title>My Net Worth (V53 Mobile Polish)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -17,7 +17,7 @@
             --bg: #000000;
             --card: #121212;
             --card-hover: #1a1a1a;
-            --nav-bg: #000000;
+            --nav-bg: #000000; /* V53: Solid black for blend */
             
             --text: #ffffff;
             --subtext: #888888;
@@ -36,92 +36,105 @@
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
             
-            /* V52: iOS Physics Curve (Quart/Quint Ease Out) */
             --ios-ease: cubic-bezier(0.25, 1, 0.5, 1);
             --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
-        @property --pie-p {
-            syntax: '<percentage>';
-            inherits: false;
-            initial-value: 0%;
-        }
+        @property --pie-p { syntax: '<percentage>'; inherits: false; initial-value: 0%; }
 
         body {
             background-color: var(--bg); color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0; 
-            padding: calc(20px + var(--safe-top)) 20px calc(80px + var(--safe-bottom)) 20px;
+            /* V53: Layout Fixes */
+            padding: 0;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
-            touch-action: pan-y; 
+            touch-action: pan-y;
+            -webkit-font-smoothing: antialiased; /* Crisp fonts on iOS */
         }
 
-        .container { width: 100%; max-width: 1100px; position: relative; min-height: 80vh; }
+        .container { 
+            width: 100%; max-width: 600px; /* V53: Constrain width for better mobile emulation on desktop */
+            position: relative; 
+            min-height: 100vh;
+            padding: calc(20px + var(--safe-top)) 20px calc(90px + var(--safe-bottom)) 20px; /* Bottom padding for nav */
+        }
 
-        /* V52: Slower, iOS-style Page Transitions */
-        .page { 
-            display: none; 
-            width: 100%;
-            /* Default hidden state */
-            opacity: 0;
-            transform: translateY(10px) scale(0.99); 
+        /* --- V53: Hero Header Optimization --- */
+        header { 
+            text-align: center; 
+            margin-bottom: 25px; 
+            margin-top: 10px; 
+            display: flex; flex-direction: column; align-items: center;
         }
-        .page.active { 
-            display: block; 
-            /* Default entry (fade up) */
-            animation: pageEnter 0.6s var(--ios-ease) forwards;
+        .total-title { 
+            font-size: 13px; color: #666; letter-spacing: 2px; 
+            text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
         }
         
-        @keyframes pageEnter { 
-            from { opacity: 0; transform: translateY(10px) scale(0.99); } 
-            to { opacity: 1; transform: translateY(0) scale(1); } 
+        /* The main number container */
+        .total-amount-box {
+            display: flex; 
+            align-items: baseline; /* Align bottom of numbers */
+            justify-content: center;
+            line-height: 1;
+            gap: 4px; /* Space between elements */
         }
         
-        /* Swipe Animations - Slower & Smoother */
+        .currency-symbol {
+            font-size: 20px; 
+            font-weight: 500; 
+            color: var(--subtext);
+            transform: translateY(-4px); /* Slight visual lift */
+        }
+        
+        .total-main-num {
+            /* Responsive font size: minimum 40px, preferred 11vw, max 56px */
+            font-size: clamp(40px, 12vw, 64px); 
+            font-weight: 700; 
+            color: #fff;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -1px;
+        }
+        
+        .unit-tag {
+            font-size: 20px; 
+            font-weight: 500; 
+            color: var(--text);
+            margin-left: 2px;
+        }
+
+        /* --- Page & Transitions --- */
+        .page { display: none; width: 100%; opacity: 0; transform: translateY(10px) scale(0.99); }
+        .page.active { display: block; animation: pageEnter 0.6s var(--ios-ease) forwards; }
+        
+        @keyframes pageEnter { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .slide-in-right { animation: slideInRight 0.5s var(--ios-ease) forwards; }
         .slide-in-left { animation: slideInLeft 0.5s var(--ios-ease) forwards; }
-        
-        @keyframes slideInRight { 
-            from { opacity: 0; transform: translateX(50px); } /* Slightly larger distance */
-            to { opacity: 1; transform: translateX(0); } 
-        }
-        @keyframes slideInLeft { 
-            from { opacity: 0; transform: translateX(-50px); } 
-            to { opacity: 1; transform: translateX(0); } 
-        }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(50px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
 
-        /* Navigation Bar */
+        /* --- Navigation Bar --- */
         .nav-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background: var(--nav-bg); 
+            background: rgba(0,0,0,0.85); /* V53: Slight transparency */
+            backdrop-filter: blur(20px); /* iOS Blur */
             border-top: 1px solid #1a1a1a;
             display: flex; justify-content: space-around; align-items: center;
             padding-bottom: var(--safe-bottom);
             height: calc(60px + var(--safe-bottom));
             z-index: 100;
         }
-        .nav-item {
-            flex: 1; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer; position: relative;
-            transition: transform 0.2s var(--ios-ease);
-        }
-        .nav-item:active { transform: scale(0.92); } /* Subtle press */
-        .nav-item:hover .nav-icon svg { fill: var(--nav-hover); opacity: 1; transform: translateY(-3px); filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+        .nav-item { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: transform 0.2s var(--ios-ease); }
+        .nav-item:active { transform: scale(0.92); }
         .nav-item.active .nav-icon svg { fill: var(--nav-active); opacity: 1; transform: translateY(-5px) scale(1.15); filter: drop-shadow(0 0 8px rgba(255,255,255,0.6)); }
-        .nav-item.active::after {
-            content: ''; position: absolute; bottom: 12px;
-            width: 4px; height: 4px; border-radius: 50%;
-            background-color: var(--nav-active);
-            box-shadow: 0 0 6px var(--nav-active);
-            animation: dotPop 0.5s var(--ease-elastic);
-        }
+        .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 4px; height: 4px; border-radius: 50%; background-color: var(--nav-active); box-shadow: 0 0 6px var(--nav-active); animation: dotPop 0.5s var(--ease-elastic); }
         @keyframes dotPop { from { transform: scale(0); } to { transform: scale(1); } }
         .nav-icon svg { width: 24px; height: 24px; fill: var(--nav-inactive); transition: all 0.5s var(--ease-elastic); opacity: 0.6; }
 
-        /* Config Box */
+        /* --- Config Box --- */
         .config-box { background: #121212; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #222; }
         .csv-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 10px; font-size: 14px; margin-top: 10px; outline: none; color: #888; transition: border-color 0.3s; }
         .csv-input:focus { border-color: var(--accent); color: #fff; }
@@ -135,25 +148,14 @@
         .rate-pill { font-size: 13px; color: #aaa; background: #222; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
         .rate-val { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
-        header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
-        .total-title { font-size: 14px; color: #666; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
-        /* V52: Tabular nums for stable rolling */
-        .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); font-variant-numeric: tabular-nums; }
-        .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
-
-        /* Trend Chart */
+        /* --- Trend Chart --- */
         .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
-        .trend-line { 
-            fill: none; stroke: var(--trend-line); stroke-width: 2.5; 
-            stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
-            /* V52: Line Draw Animation handled by JS */
-        }
+        .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 1.5s; /* Delay label fade in */ }
-        .chart-label.visible { opacity: 1; } /* Trigger class */
-        
+        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 1.5s; }
+        .chart-label.visible { opacity: 1; }
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
         .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
@@ -171,7 +173,6 @@
         /* Structure Bar */
         .structure-container { width: 100%; margin-bottom: 20px; padding: 0 10px; }
         .structure-bar { width: 100%; height: 24px; background: #222; border-radius: 12px; display: flex; overflow: hidden; margin-bottom: 10px; }
-        /* V52: Smooth Width Transition */
         .struct-seg { height: 100%; width: 0%; transition: width 1.2s var(--ios-ease); }
         .struct-metrics { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext); }
         .struct-metric-item { text-align: center; }
@@ -179,81 +180,100 @@
         .metric-big { font-size: 18px; font-weight: bold; color: #fff; display: block; }
         .metric-label { font-size: 10px; opacity: 0.7; }
 
-        /* Analysis Grid & Pie Charts */
+        /* Analysis Grid */
         .analysis-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 600px) { .analysis-grid { grid-template-columns: 1fr 1fr; } }
-
         .chart-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; transition: transform 0.3s var(--ios-ease), border-color 0.3s; }
         .chart-card:hover { transform: translateY(-3px); border-color: #333; }
         .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--subtext); width: 100%; text-align: center; }
-        
         .chart-container { width: 160px; height: 160px; border-radius: 50%; margin-bottom: 15px; background: #222; position: relative; }
-        
-        .pie-ring {
-            width: 100%; height: 100%; border-radius: 50%;
-            --pie-p: 0%;
-            mask: conic-gradient(#000 var(--pie-p), transparent var(--pie-p));
-            -webkit-mask: conic-gradient(#000 var(--pie-p), transparent var(--pie-p));
-        }
-        .pie-anim .pie-ring {
-            animation: pieReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        }
+        .pie-ring { width: 100%; height: 100%; border-radius: 50%; --pie-p: 0%; mask: conic-gradient(#000 var(--pie-p), transparent var(--pie-p)); -webkit-mask: conic-gradient(#000 var(--pie-p), transparent var(--pie-p)); }
+        .pie-anim .pie-ring { animation: pieReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         @keyframes pieReveal { from { --pie-p: 0%; } to { --pie-p: 100%; } }
-
-        .chart-inner { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
-            width: 110px; height: 110px; background-color: var(--card); border-radius: 50%; 
-            display: flex; align-items: center; justify-content: center; flex-direction: column; 
-            color: var(--subtext); font-size: 12px; text-align: center; 
-            z-index: 2;
-        }
+        .chart-inner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 110px; height: 110px; background-color: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--subtext); font-size: 12px; text-align: center; z-index: 2; }
         .chart-inner .inner-val { font-size: 16px; font-weight: bold; color: #fff; }
         .chart-inner .inner-label { font-size: 10px; color: #888; margin-top: 2px; }
-
         .legend-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
         .legend-item { display: flex; align-items: center; background: #222; padding: 4px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #333; white-space: nowrap; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
-        .asset-list-container { display: grid; gap: 15px; }
+        /* Asset List (V53: Optimized) */
+        .asset-list-container { display: grid; gap: 12px; } /* Slightly tighter gap */
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
-        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); opacity: 0; transform: translateY(20px); }
+        .category-group { 
+            border-radius: 16px; overflow: hidden; background-color: var(--card); 
+            border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); 
+            opacity: 0; transform: translateY(20px); 
+        }
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
         
+        /* V53: The Perfect Mobile Grid Header */
         .category-header { 
-            padding: 15px 20px; min-height: 70px; cursor: pointer;
-            display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 15px;
+            padding: 16px; /* Optimized padding */
+            min-height: 64px;
+            cursor: pointer;
+            display: flex; /* Flex is better for responsive text truncation */
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
         
-        .cat-left-content { display: flex; align-items: center; gap: 12px; }
-        .cat-icon-box { width: 36px; height: 36px; border-radius: 10px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); flex-shrink: 0;}
+        /* Left: Icon + Name (Flexible, can truncate) */
+        .cat-left-content { 
+            display: flex; align-items: center; gap: 12px; 
+            flex: 1; /* Allow taking available space */
+            min-width: 0; /* Enable flex child truncation */
+        }
+        .cat-icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); flex-shrink: 0; }
         .category-group:hover .cat-icon-box { transform: scale(1.1); }
-        .cat-icon-box svg { width: 20px; height: 20px; }
-        .cat-text-info { display: flex; align-items: baseline; gap: 8px; }
-        .cat-name { font-size: 16px; font-weight: bold; color: #fff; white-space: nowrap; }
-        .cat-count { font-size: 11px; color: var(--subtext); background: #222; padding: 2px 8px; border-radius: 10px; white-space: nowrap; }
+        .cat-icon-box svg { width: 18px; height: 18px; }
         
-        .cat-right-content { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; margin-right: 5px; }
-        .cat-amount { 
-            font-size: 17px; font-weight: bold; color: #fff; 
-            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
-            letter-spacing: 0.5px; line-height: 1.2;
+        .cat-text-info { display: flex; align-items: baseline; gap: 6px; overflow: hidden; }
+        .cat-name { 
+            font-size: 15px; font-weight: 700; color: #fff; 
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
         }
-        .cat-pct { font-size: 11px; color: var(--subtext); margin-top: 3px; }
+        /* V53: Hide count on small screens to save space */
+        .cat-count { 
+            font-size: 10px; color: var(--subtext); background: #222; 
+            padding: 1px 6px; border-radius: 8px; white-space: nowrap; 
+            display: none; /* Default hidden on mobile */
+        }
+        @media (min-width: 360px) { .cat-count { display: inline-block; } } /* Show on larger phones */
         
-        .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; font-size: 12px; display: flex; align-items: center; justify-content: center;}
+        /* Right: Amount + Pct (Rigid, aligned right) */
+        .cat-right-content { 
+            display: flex; flex-direction: column; align-items: flex-end; justify-content: center; 
+            flex-shrink: 0; /* Never shrink this */
+        }
+        .cat-amount { 
+            /* V53: Optimized font size for mobile */
+            font-size: 15px; font-weight: 700; color: #fff; 
+            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            font-variant-numeric: tabular-nums; /* Critical for alignment */
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+        .cat-pct { font-size: 11px; color: var(--subtext); margin-top: 2px; }
+        
+        .arrow-icon { 
+            transition: transform 0.3s ease; opacity: 0.4; font-size: 10px; 
+            margin-left: 5px; flex-shrink: 0;
+        }
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
+        
         .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ios-ease); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
 
-        .asset-item { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.2s; }
+        .asset-item { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.2s; }
         .asset-item:hover { background: #0a0a0a; }
         .asset-item:last-child { border-bottom: none; }
-        .asset-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #ddd; }
-        .asset-info p { margin: 0; font-size: 12px; color: var(--subtext); }
-        .asset-val { text-align: right; font-weight: 500; font-size: 15px; }
-        .asset-val small { font-size: 11px; opacity: 0.7; display: block;}
+        .asset-info h4 { margin: 0 0 2px 0; font-size: 14px; color: #eee; }
+        .asset-info p { margin: 0; font-size: 11px; color: var(--subtext); }
+        .asset-val { text-align: right; font-weight: 500; font-size: 14px; font-family: ui-monospace, monospace; }
+        .asset-val small { font-size: 10px; opacity: 0.7; display: block;}
         .is-debt .cat-amount, .is-debt .asset-val { color: #A6444D; }
         .is-interest .asset-val { color: #596275; }
 
@@ -269,7 +289,11 @@
     <div id="page-home" class="page active">
         <header>
             <div class="total-title">NET WORTH</div>
-            <div class="total-amount"><span class="currency-tag">NT$</span> <span id="displayTotal">0</span></div>
+            <div class="total-amount-box" id="displayTotalBox">
+                <span class="currency-symbol">NT$</span>
+                <span class="total-main-num" id="displayTotal">0</span>
+                <span class="unit-tag" id="displayUnit"></span>
+            </div>
         </header>
 
         <div id="trendChartWrapper" class="trend-wrapper">
@@ -379,7 +403,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V52.0<br>iOS Motion
+                Vibe Coding V53.0<br>Mobile Perfect
             </div>
         </div>
     </div>
@@ -433,14 +457,12 @@
     document.getElementById('rateDisplay').innerText = currentRate;
     if(document.getElementById('csvUrl').value) fetchData();
 
-    // V51: Swipe Logic
+    // Swipe Logic
     const pages = ['home', 'analysis', 'list', 'settings'];
     const container = document.getElementById('mainContainer');
     let startX = 0;
     
-    document.addEventListener('touchstart', e => {
-        startX = e.touches[0].clientX;
-    }, {passive: true});
+    document.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, {passive: true});
 
     document.addEventListener('touchend', e => {
         const endX = e.changedTouches[0].clientX;
@@ -451,13 +473,9 @@
             const currentIndex = pages.indexOf(activePage.id.replace('page-', ''));
             
             if (diff > 0) {
-                if (currentIndex < pages.length - 1) {
-                    switchPage(pages[currentIndex + 1], null, 'left');
-                }
+                if (currentIndex < pages.length - 1) { switchPage(pages[currentIndex + 1], null, 'left'); }
             } else {
-                if (currentIndex > 0) {
-                    switchPage(pages[currentIndex - 1], null, 'right');
-                }
+                if (currentIndex > 0) { switchPage(pages[currentIndex - 1], null, 'right'); }
             }
         }
     }, {passive: true});
@@ -470,13 +488,9 @@
             p.classList.remove('active', 'slide-in-right', 'slide-in-left');
         });
         
-        if (direction === 'left') {
-            targetPage.classList.add('slide-in-right');
-        } else if (direction === 'right') {
-            targetPage.classList.add('slide-in-left');
-        } else {
-            targetPage.style.animation = 'pageEnter 0.6s var(--ios-ease) forwards';
-        }
+        if (direction === 'left') { targetPage.classList.add('slide-in-right'); } 
+        else if (direction === 'right') { targetPage.classList.add('slide-in-left'); } 
+        else { targetPage.style.animation = 'pageEnter 0.6s var(--ios-ease) forwards'; }
         
         targetPage.classList.add('active');
         
@@ -485,41 +499,37 @@
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
-        // V52: Replay Home Animations
+        // Replay Animations
         if(pageId === 'home') {
-            // 1. Re-roll Net Worth
-            // Need to retrieve the stored total. We can store it on the element or global var.
-            // Simplified: Re-calculate from displayed text if clean, or re-fetch.
-            // Better: Global var.
             if(window.cachedTotal) {
-                const totalEl = document.getElementById('displayTotal');
+                // V53: Use split elements for total animation
                 let displayNum = window.cachedTotal;
                 let suffix = "";
                 if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
                 else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
-                animateValue(totalEl, 0, displayNum, 1500, window.cachedTotal < 0, suffix);
+                
+                // Animate just the number part
+                animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, window.cachedTotal < 0, "");
+                // Set the unit
+                document.getElementById('displayUnit').innerText = suffix;
             }
 
-            // 2. Re-animate Structure Bar
             const bars = document.querySelectorAll('.struct-seg');
-            // Reset widths
             bars.forEach(b => { 
                 const w = b.style.width; 
                 b.style.width = '0%'; 
                 setTimeout(() => b.style.width = w, 50); 
             });
 
-            // 3. Re-draw Trend Line
             const line = document.querySelector('.trend-line');
             if(line) {
                 line.style.transition = 'none';
                 line.style.strokeDasharray = line.getTotalLength();
                 line.style.strokeDashoffset = line.getTotalLength();
-                line.getBoundingClientRect(); // Trigger reflow
+                line.getBoundingClientRect(); 
                 line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
                 line.style.strokeDashoffset = '0';
                 
-                // Also reset labels fade in
                 document.querySelectorAll('.chart-label').forEach(l => {
                     l.classList.remove('visible');
                     setTimeout(() => l.classList.add('visible'), 1500);
@@ -555,13 +565,15 @@
                     let displayNum = num;
                     if(Math.abs(num) >= 100000000) { suffix = " 億"; displayNum = num / 100000000; } 
                     else if (Math.abs(num) >= 10000) { suffix = " 萬"; displayNum = num / 10000; }
-                    animateValue(el, 0, displayNum, 2500, targetText.includes('-'), suffix);
+                    
+                    // V53: Prefix NT$ manually here for list
+                    animateValue(el, 0, displayNum, 2500, targetText.includes('-'), suffix, "NT$ ");
                 }
             });
         }
     }
 
-    function animateValue(obj, start, end, duration, isNegative, suffix) {
+    function animateValue(obj, start, end, duration, isNegative, suffix, prefix = "") {
         let startTimestamp = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
@@ -577,8 +589,8 @@
                 displayStr = Math.floor(currentVal).toLocaleString();
             }
             
-            if(isNegative) displayStr = '- ' + displayStr;
-            obj.innerHTML = displayStr + suffix;
+            let sign = isNegative ? "- " : "";
+            obj.innerHTML = prefix + sign + displayStr + suffix;
             
             if (progress < 1) {
                 window.requestAnimationFrame(step);
@@ -589,9 +601,7 @@
                 } else {
                     finalStr = Math.round(end).toLocaleString();
                 }
-                
-                if(isNegative) finalStr = '- ' + finalStr;
-                obj.innerHTML = finalStr + suffix;
+                obj.innerHTML = prefix + sign + finalStr + suffix;
             }
         };
         window.requestAnimationFrame(step);
@@ -747,32 +757,21 @@
         let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
         let totalLiabilities = totalDebtAbs + totalInterestAbs;
 
-        // V52: Store total for animation replay
+        // V53: Split Update for Header
         window.cachedTotal = totalNetWorth;
-        
-        // Initial Draw (Home is active by default, so trigger animations)
         let displayNum = totalNetWorth;
         let suffix = "";
         if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
         else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
         
-        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, suffix);
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, "", "");
+        document.getElementById('displayUnit').innerText = suffix;
         
         drawTrendChart(historyData, totalNetWorth);
         
-        // Structure Bar Animation Logic (Initial)
         drawStructureBar(leverage, totalGrossAssets);
-        // Trigger fill animation after draw
         setTimeout(() => {
             const bars = document.querySelectorAll('.struct-seg');
-            // We need to re-apply the widths because drawStructureBar set them immediately.
-            // Ideally, drawStructureBar should set 0 then animate.
-            // Let's force a reflow here for the first load.
-            // (Function drawStructureBar modified to set width, here we just let it happen or reset if needed)
-            // Actually, best way is to let drawStructureBar set the final width, but since it's just HTML,
-            // the transition in CSS will handle it if we start from 0.
-            // But on first load, elements are created with width.
-            // Let's reset them to 0 and set again.
             bars.forEach(b => {
                 const finalW = b.style.width;
                 b.style.width = '0%';
@@ -822,7 +821,7 @@
                                 <span class="cat-count">${items.length}</span>
                             </div>
                         </div>
-                        <div class="cat-total-area">
+                        <div class="cat-right-content">
                             <span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span>
                             <span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span>
                         </div>
@@ -909,8 +908,6 @@
             if (i === maxIdx || i === minIdx) {
                 let labelDiv = document.createElement('div');
                 labelDiv.className = 'chart-label';
-                // Trigger visibility after delay
-                labelDiv.classList.add('visible'); // Actually let CSS delay handle it
                 labelDiv.innerText = formatTrendVal(p.val);
                 labelDiv.style.left = (x / 10) + '%';
                 let offset = (i === maxIdx) ? -25 : 10;
@@ -918,9 +915,6 @@
                 if (i === 0) labelDiv.classList.add('left');
                 if (i === points.length - 1) labelDiv.classList.add('right');
                 labelContainer.appendChild(labelDiv);
-                
-                // Manually trigger fade in
-                setTimeout(() => labelDiv.classList.add('visible'), 100);
             }
         });
         
@@ -930,16 +924,6 @@
         const group = document.getElementById('crosshairGroup').outerHTML;
         svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
         
-        // Animate stroke
-        const line = svg.querySelector('.trend-line');
-        const length = line.getTotalLength();
-        line.style.transition = 'none';
-        line.style.strokeDasharray = length;
-        line.style.strokeDashoffset = length;
-        line.getBoundingClientRect();
-        line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
-        line.style.strokeDashoffset = '0';
-
         setupInteraction(w, h, currentVal);
     }
 
@@ -1019,20 +1003,12 @@
         const pctNet = (data.networth / total) * 100;
         const pctDebt = (data.debt / total) * 100;
         const pctInt = (data.interest / total) * 100;
-        
-        const barNet = document.getElementById('barNetworth');
-        const barDebt = document.getElementById('barDebt');
-        const barInt = document.getElementById('barInterest');
-        
-        // Set final widths but don't animate yet (handled by switchPage re-trigger or init timeout)
-        barNet.style.width = pctNet + '%';
-        barDebt.style.width = pctDebt + '%';
-        barInt.style.width = pctInt + '%';
-
+        document.getElementById('barNetworth').style.width = pctNet + '%';
+        document.getElementById('barDebt').style.width = pctDebt + '%';
+        document.getElementById('barInterest').style.width = pctInt + '%';
         document.getElementById('structNetWorth').innerText = formatCompact(data.networth);
         const debtRatio = ((data.debt + data.interest) / total * 100).toFixed(1);
         document.getElementById('structDebtRatio').innerText = debtRatio + '%';
-        
         const legendBox = document.getElementById('legendLeverage');
         legendBox.innerHTML = '';
         const keys = ['networth', 'debt', 'interest'];
