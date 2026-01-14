@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V49 Rolling Nums)</title>
+    <title>My Net Worth (V50 Pro Layout)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -190,36 +190,67 @@
         .asset-list-container { display: grid; gap: 15px; }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
-        /* V49: Staggered Fade-in Animation for Cards */
-        .category-group { 
-            border-radius: 16px; overflow: hidden; background-color: var(--card); 
-            border: 1px solid #1a1a1a; transition: all 0.3s var(--ease-out-expo); 
-            opacity: 0; transform: translateY(20px); /* Initial state for animation */
-        }
-        .category-group:hover {
-            transform: translateY(-2px);
-            background-color: var(--card-hover);
-            border-color: #333;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
-        }
+        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ease-out-expo); opacity: 0; transform: translateY(20px); }
+        .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
         
-        .category-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; min-height: 44px; }
+        /* V50: Grid Layout for Header - Strict Alignment */
+        .category-header { 
+            padding: 15px 20px; 
+            min-height: 70px;
+            cursor: pointer;
+            display: grid;
+            grid-template-columns: auto 1fr auto; /* [Left Content] [Spacer] [Arrow] */
+            align-items: center;
+            gap: 15px;
+        }
         
-        .cat-title-area { display: flex; align-items: center; gap: 12px; }
-        .cat-icon-box { width: 34px; height: 34px; border-radius: 10px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); }
+        /* Left Side (Icon + Name + Badge) -> Nested Flex */
+        .cat-left-content {
+            display: flex; align-items: center; gap: 12px;
+        }
+
+        .cat-icon-box { 
+            width: 36px; height: 36px; 
+            border-radius: 10px; 
+            display: flex; justify-content: center; align-items: center; 
+            transition: transform 0.3s var(--ease-elastic); 
+            flex-shrink: 0;
+        }
         .category-group:hover .cat-icon-box { transform: scale(1.1); }
-        .cat-icon-box svg { width: 18px; height: 18px; }
-        .cat-name { font-size: 16px; font-weight: bold; color: #fff; }
-        .cat-count { font-size: 12px; color: var(--subtext); background: #222; padding: 2px 8px; border-radius: 10px; }
-        .cat-total-area { text-align: right; }
+        .cat-icon-box svg { width: 20px; height: 20px; }
         
-        /* V49: Monospace font for rolling numbers prevents jitter */
-        .cat-amount { font-size: 16px; font-weight: bold; color: #fff; display: block; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+        .cat-text-info {
+            display: flex; align-items: baseline; gap: 8px;
+        }
+        .cat-name { font-size: 16px; font-weight: bold; color: #fff; white-space: nowrap; }
+        .cat-count { 
+            font-size: 11px; color: var(--subtext); background: #222; 
+            padding: 2px 8px; border-radius: 10px; 
+            white-space: nowrap;
+        }
+
+        /* Right Side (Amount + Percent) -> Nested Grid/Flex */
+        .cat-right-content {
+            display: flex; flex-direction: column; align-items: flex-end; justify-content: center;
+            margin-right: 5px; /* Spacing before arrow */
+        }
         
-        .cat-pct { font-size: 12px; color: var(--subtext); }
-        .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; margin-left: 10px; font-size: 12px;}
+        /* V50: Monospace + Tight Alignment */
+        .cat-amount { 
+            font-size: 17px; font-weight: bold; color: #fff; 
+            font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace; /* Tabular nums */
+            letter-spacing: 0.5px;
+            line-height: 1.2;
+        }
+        .cat-pct { font-size: 11px; color: var(--subtext); margin-top: 3px; }
+        
+        .arrow-icon { 
+            transition: transform 0.3s ease; opacity: 0.5; font-size: 12px; 
+            display: flex; align-items: center; justify-content: center;
+        }
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
+        
         .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ease-out-expo); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
 
@@ -355,7 +386,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V49.0<br>Rolling Numbers
+                Vibe Coding V50.0<br>Grid Alignment + Inertia Scroll
             </div>
         </div>
     </div>
@@ -415,7 +446,6 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         navEl.classList.add('active');
         
-        // Replay Pie
         if(pageId === 'analysis') {
             document.querySelectorAll('.chart-card').forEach(card => {
                 card.classList.remove('pie-anim');
@@ -424,43 +454,42 @@
             });
         }
         
-        // V49: Replay List Animations
         if(pageId === 'list') {
-            // 1. Stagger Cards
             const cards = document.querySelectorAll('.category-group');
             cards.forEach((card, index) => {
                 card.style.opacity = '0';
                 card.style.transform = 'translateY(20px)';
-                // Delay based on index
                 setTimeout(() => {
                     card.style.opacity = '1';
                     card.style.transform = 'translateY(0)';
-                }, index * 80); // 80ms gap
+                }, index * 80);
             });
 
-            // 2. Count Up Numbers
+            // V50: New EaseOutQuint Animation (Slow tail)
             document.querySelectorAll('.cat-amount').forEach(el => {
-                const targetText = el.getAttribute('data-value'); // We need to store original text or raw value
+                const targetText = el.getAttribute('data-value');
                 if(targetText) {
-                    const cleanVal = targetText.replace(/[^0-9.-]+/g,""); // Remove NT$, commas
-                    animateValue(el, 0, parseFloat(cleanVal), 1500, targetText.includes('-'));
+                    const cleanVal = targetText.replace(/[^0-9.-]+/g,"");
+                    // Increased duration to 2500ms to show the slow-down effect
+                    animateValue(el, 0, parseFloat(cleanVal), 2500, targetText.includes('-'));
                 }
             });
         }
     }
 
-    // V49: Rolling Number Animation Function
+    // V50: Custom Easing - EaseOutQuint
+    // Formula: 1 - pow(1 - x, 5) -> Starts fast, very slow end
     function animateValue(obj, start, end, duration, isNegative) {
         let startTimestamp = null;
         const step = (timestamp) => {
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            // Ease out expo for smoothness
-            const easeProgress = 1 - Math.pow(2, -10 * progress);
+            
+            // Ease Out Quint: Stronger deceleration than Expo for "rolling" feel
+            const easeProgress = 1 - Math.pow(1 - progress, 5);
             
             const currentVal = Math.floor(easeProgress * (end - start) + start);
             
-            // Format back to currency string
             let displayStr = Math.abs(currentVal).toLocaleString();
             if(isNegative) displayStr = '- ' + displayStr;
             obj.innerHTML = "NT$ " + displayStr;
@@ -468,7 +497,6 @@
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                // Ensure final value is exact
                 let finalStr = Math.abs(end).toLocaleString();
                 if(isNegative) finalStr = '- ' + finalStr;
                 obj.innerHTML = "NT$ " + finalStr;
@@ -657,17 +685,21 @@
                 
                 groupDiv.innerHTML = `
                     <div class="category-header ${isDebtGroup ? 'is-debt' : ''}" onclick="toggleGroup(this)">
-                        <div class="cat-title-area">
+                        <div class="cat-left-content">
                             <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}">
                                 <svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg>
                             </div>
-                            <span class="cat-name">${typeLabels[key]}</span>
-                            <span class="cat-count">${items.length}</span>
+                            <div class="cat-text-info">
+                                <span class="cat-name">${typeLabels[key]}</span>
+                                <span class="cat-count">${items.length}</span>
+                            </div>
                         </div>
-                        <div class="cat-total-area">
+                        
+                        <div class="cat-right-content">
                             <span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span>
                             <span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span>
                         </div>
+                        
                         <div class="arrow-icon">▼</div>
                     </div>
                     <div class="category-content"></div>
