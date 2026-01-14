@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V54 Polish)</title>
+    <title>My Net Worth (V55 Integer)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -61,11 +61,10 @@
             padding: calc(20px + var(--safe-top)) 20px calc(90px + var(--safe-bottom)) 20px; 
         }
 
-        /* --- V54: Loading Overlay --- */
+        /* --- Loading Overlay --- */
         .loading-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(15px);
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
             z-index: 9999;
             display: flex; flex-direction: column; justify-content: center; align-items: center;
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
@@ -81,7 +80,6 @@
             margin-bottom: 20px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
         .loading-text { font-size: 14px; color: var(--subtext); letter-spacing: 1px; font-weight: 500; }
 
         /* --- Hero Header --- */
@@ -97,14 +95,18 @@
         }
         .total-amount-box {
             display: flex; align-items: baseline; justify-content: center;
-            line-height: 1; gap: 4px;
+            line-height: 1; gap: 6px;
+            white-space: nowrap; /* V55: Force single line */
+            flex-wrap: nowrap;
         }
-        .currency-symbol { font-size: 20px; font-weight: 500; color: var(--subtext); transform: translateY(-4px); }
+        .currency-symbol { font-size: 20px; font-weight: 500; color: var(--subtext); transform: translateY(-6px); }
         .total-main-num {
-            font-size: clamp(40px, 12vw, 64px); font-weight: 700; color: #fff;
+            /* V55: Adjusted clamp for better fit */
+            font-size: clamp(36px, 11vw, 60px); 
+            font-weight: 700; color: #fff;
             font-variant-numeric: tabular-nums; letter-spacing: -1px;
         }
-        .unit-tag { font-size: 20px; font-weight: 500; color: var(--text); margin-left: 2px; }
+        .unit-tag { font-size: 20px; font-weight: 500; color: var(--text); }
 
         /* --- Page & Transitions --- */
         .page { display: none; width: 100%; opacity: 0; transform: translateY(10px) scale(0.99); }
@@ -364,10 +366,12 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V54.0<br>No Decimals
+                Vibe Coding V55.0<br>No Decimals
             </div>
         </div>
     </div>
+
+    <div id="loading" class="loading-text">運算中...</div>
 
     <nav class="nav-bar">
         <div class="nav-item active" onclick="switchPage('home', this)">
@@ -528,6 +532,7 @@
         }
     }
 
+    // V55: Force Integer Animation
     function animateValue(obj, start, end, duration, isNegative, suffix, prefix = "") {
         let startTimestamp = null;
         const step = (timestamp) => {
@@ -537,11 +542,16 @@
             
             const currentVal = easeProgress * (end - start) + start;
             
+            // V55: Always use floor/round for display during animation, NO decimals
             let displayStr = "";
             if (suffix) {
-                displayStr = currentVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                // For Wan/Yi, we usually want 2 decimals, BUT user asked for NO DECIMALS
+                // Wait, typically for Wan/Yi 4228.26 Wan is standard.
+                // But user said "remove decimals everywhere".
+                // So 4228 Wan.
+                displayStr = Math.round(currentVal).toLocaleString();
             } else {
-                displayStr = Math.floor(currentVal).toLocaleString();
+                displayStr = Math.round(currentVal).toLocaleString();
             }
             
             let sign = isNegative ? "- " : "";
@@ -551,12 +561,8 @@
                 window.requestAnimationFrame(step);
             } else {
                 let finalStr = "";
-                if (suffix) {
-                    finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                } else {
-                    // V54: Enforce no decimals for final non-suffix values
-                    finalStr = Math.round(end).toLocaleString();
-                }
+                // V55: Final value also rounded
+                finalStr = Math.round(end).toLocaleString();
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
         };
@@ -576,14 +582,15 @@
     }
     
     function formatCompact(num) {
-        if (num >= 100000000) return (num / 100000000).toFixed(2) + '億';
-        if (num >= 10000) return (num / 10000).toFixed(0) + '萬';
+        if (num >= 100000000) return (num / 100000000).toFixed(0) + '億'; // V55: No decimal
+        if (num >= 10000) return (num / 10000).toFixed(0) + '萬'; // V55: No decimal
         return (num / 1000).toFixed(1) + 'k';
     }
     
+    // V55: Integer Chinese Currency
     function formatChineseCurrency(num) {
-        if (Math.abs(num) >= 100000000) return (num / 100000000).toFixed(2) + ' 億';
-        if (Math.abs(num) >= 10000) return (num / 10000).toFixed(2) + ' 萬';
+        if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
+        if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
     }
     
@@ -594,7 +601,6 @@
     function toggleGroup(header) { header.parentElement.classList.toggle('open'); }
 
     async function fetchData(needsNetwork = true) {
-        // Show loading overlay
         document.getElementById('loadingOverlay').classList.add('active');
         document.getElementById('errorMsg').style.display = 'none';
         
@@ -604,10 +610,8 @@
              return;
         }
         
-        // Check cache if no network needed
         if (!needsNetwork && window.cachedCSV) { 
             parseCSV(window.cachedCSV); 
-            // Small delay to let UI render before hiding overlay
             setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 500);
             return; 
         }
@@ -724,7 +728,7 @@
         let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
         let totalLiabilities = totalDebtAbs + totalInterestAbs;
 
-        // V53: Split Update for Header
+        // V55: Header Logic (Round Everything)
         window.cachedTotal = totalNetWorth;
         let displayNum = totalNetWorth;
         let suffix = "";
@@ -757,7 +761,6 @@
         order.forEach(key => {
             const items = groups[key];
             if(items && items.length > 0) {
-                // V54: Force rounding for group total
                 let groupTotal = Math.round(items.reduce((sum, item) => sum + item.valTWD, 0));
                 let isDebtGroup = (key === 'debt');
                 
@@ -808,7 +811,6 @@
                     if(isLiability) tag = item.typeStr;
                     else if(totalAssetsOnly > 0) tag = (item.valTWD / totalAssetsOnly * 100).toFixed(1) + '%';
                     
-                    // V54: Force rounding for individual items
                     let valRounded = Math.round(item.valTWD);
                     
                     const itemEl = document.createElement('div');
@@ -1012,7 +1014,7 @@
         const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
         
-        // V54: Fix for Pie Center Text - No Decimals
+        // V55: No Decimals in Pie
         document.getElementById(valId).innerText = formatCompact(Math.round(total));
 
         const legendBox = document.getElementById(legendId);
