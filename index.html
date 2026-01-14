@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V56 Sync)</title>
+    <title>My Net Worth (V57 Draw Fix)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -96,13 +96,11 @@
         .total-amount-box {
             display: flex; align-items: baseline; justify-content: center;
             line-height: 1; gap: 6px;
-            white-space: nowrap; 
-            flex-wrap: nowrap;
+            white-space: nowrap; flex-wrap: nowrap;
         }
         .currency-symbol { font-size: 20px; font-weight: 500; color: var(--subtext); transform: translateY(-6px); }
         .total-main-num {
-            font-size: clamp(36px, 11vw, 60px); 
-            font-weight: 700; color: #fff;
+            font-size: clamp(36px, 11vw, 60px); font-weight: 700; color: #fff;
             font-variant-numeric: tabular-nums; letter-spacing: -1px;
         }
         .unit-tag { font-size: 20px; font-weight: 500; color: var(--text); }
@@ -151,19 +149,24 @@
         /* --- Trend Chart --- */
         .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
-        .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-        .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
-        .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         
-        /* V56: Sync Label Animation with Line Draw (2s delay) */
-        .chart-label { 
-            position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; 
-            text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); 
-            opacity: 0; 
-            transition: opacity 0.5s ease 2s; /* 2s delay matches line draw time */
+        .trend-line { 
+            fill: none; stroke: var(--trend-line); stroke-width: 2.5; 
+            stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+            /* Animation handled by JS to ensure sync */
         }
-        .chart-label.visible { opacity: 1; }
         
+        /* V57: Area starts invisible to allow line to draw first */
+        .trend-area { 
+            fill: url(#trendGradient); stroke: none; 
+            opacity: 0; 
+            transition: opacity 1s ease 1.5s; /* Fade in after line finishes (approx) */
+        }
+        .trend-area.visible { opacity: 0.6; }
+
+        .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 2s; }
+        .chart-label.visible { opacity: 1; }
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
         .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
@@ -208,12 +211,10 @@
         /* Asset List */
         .asset-list-container { display: grid; gap: 12px; }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
-        
         .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); opacity: 0; transform: translateY(20px); }
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
         .category-header { padding: 16px; min-height: 64px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-        
         .cat-left-content { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
         .cat-icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); flex-shrink: 0; }
         .category-group:hover .cat-icon-box { transform: scale(1.1); }
@@ -222,19 +223,13 @@
         .cat-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .cat-count { font-size: 10px; color: var(--subtext); background: #222; padding: 1px 6px; border-radius: 8px; white-space: nowrap; display: none; }
         @media (min-width: 360px) { .cat-count { display: inline-block; } }
-        
         .cat-right-content { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; flex-shrink: 0; }
-        .cat-amount { 
-            font-size: 15px; font-weight: 700; color: #fff; 
-            font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-variant-numeric: tabular-nums; letter-spacing: -0.3px; line-height: 1.2;
-        }
+        .cat-amount { font-size: 15px; font-weight: 700; color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.3px; line-height: 1.2; }
         .cat-pct { font-size: 11px; color: var(--subtext); margin-top: 2px; }
         .arrow-icon { transition: transform 0.3s ease; opacity: 0.4; font-size: 10px; margin-left: 5px; flex-shrink: 0; }
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
         .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ios-ease); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
-
         .asset-item { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.2s; }
         .asset-item:hover { background: #0a0a0a; }
         .asset-item:last-child { border-bottom: none; }
@@ -246,8 +241,6 @@
         .is-interest .asset-val { color: #596275; }
         
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; padding-left: 5px; border-left: 3px solid var(--accent); line-height: 1; margin-top: 10px;}
-        
-        /* V56: Removed .loading-text from bottom (deleted from HTML) */
     </style>
 </head>
 <body>
@@ -375,7 +368,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V56.0<br>Perfect Sync
+                Vibe Coding V57.0<br>Perfect Draw & No Decimals
             </div>
         </div>
     </div>
@@ -469,7 +462,7 @@
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
-        // V56: Replay & Sync Home Animations
+        // V57: Replay & Sync Home Animations
         if(pageId === 'home') {
             if(window.cachedTotal) {
                 let displayNum = window.cachedTotal;
@@ -477,7 +470,6 @@
                 if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
                 else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
                 
-                // Duration: 2000ms to match CSS
                 animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, window.cachedTotal < 0, "", "");
                 document.getElementById('displayUnit').innerText = suffix;
             }
@@ -489,25 +481,35 @@
                 setTimeout(() => b.style.width = w, 50); 
             });
 
-            const line = document.querySelector('.trend-line');
-            if(line) {
-                // Reset Line
-                line.style.transition = 'none';
-                line.style.strokeDasharray = line.getTotalLength();
-                line.style.strokeDashoffset = line.getTotalLength();
-                line.getBoundingClientRect(); 
-                // Animate Line (2s)
-                line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
-                line.style.strokeDashoffset = '0';
-                
-                // Reset Labels & Fade in at 2s
-                document.querySelectorAll('.chart-label').forEach(l => {
-                    l.classList.remove('visible');
-                    // CSS has 2s delay, just adding class triggers the waiting period
-                    void l.offsetWidth; 
-                    l.classList.add('visible');
-                });
-            }
+            // V57: Double RAF to ensure Line Draw triggers correctly
+            requestAnimationFrame(() => {
+                const line = document.querySelector('.trend-line');
+                const area = document.querySelector('.trend-area');
+                if(line) {
+                    // Reset
+                    line.style.transition = 'none';
+                    line.style.strokeDasharray = line.getTotalLength();
+                    line.style.strokeDashoffset = line.getTotalLength();
+                    if(area) area.classList.remove('visible');
+                    
+                    // Force Reflow & Animate
+                    requestAnimationFrame(() => {
+                        line.getBoundingClientRect(); 
+                        line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
+                        line.style.strokeDashoffset = '0';
+                        // Fade in Area
+                        if(area) {
+                            // Wait for reflow before setting timeout to align with transition
+                            setTimeout(() => area.classList.add('visible'), 100); 
+                        }
+                    });
+                    
+                    document.querySelectorAll('.chart-label').forEach(l => {
+                        l.classList.remove('visible');
+                        setTimeout(() => l.classList.add('visible'), 1500);
+                    });
+                }
+            });
         }
 
         if(pageId === 'analysis') {
@@ -554,7 +556,7 @@
             
             const currentVal = easeProgress * (end - start) + start;
             
-            // V56: Strict rounding during animation
+            // V57: Strict rounding during animation
             let displayStr = Math.round(currentVal).toLocaleString();
             
             let sign = isNegative ? "- " : "";
@@ -563,7 +565,7 @@
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                // V56: Strict rounding for final value
+                // V57: Strict rounding for final value
                 let finalStr = Math.round(end).toLocaleString();
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
@@ -590,7 +592,7 @@
     }
     
     function formatChineseCurrency(num) {
-        // V56: Strict Rounding
+        // V57: Strict Rounding
         if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
         if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
@@ -730,15 +732,14 @@
         let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
         let totalLiabilities = totalDebtAbs + totalInterestAbs;
 
-        // V56: Header Logic
+        // V57: Header Logic (Round Everything)
         window.cachedTotal = totalNetWorth;
         let displayNum = totalNetWorth;
         let suffix = "";
         if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
         else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
         
-        // Sync Time: 2000ms
-        animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, totalNetWorth < 0, "", "");
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, "", "");
         document.getElementById('displayUnit').innerText = suffix;
         
         drawTrendChart(historyData, totalNetWorth);
@@ -901,20 +902,35 @@
         const group = document.getElementById('crosshairGroup').outerHTML;
         svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
         
-        // V56: Sync Animation (2s)
-        const line = svg.querySelector('.trend-line');
-        const length = line.getTotalLength();
-        line.style.transition = 'none';
-        line.style.strokeDasharray = length;
-        line.style.strokeDashoffset = length;
-        line.getBoundingClientRect();
-        line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
-        line.style.strokeDashoffset = '0';
-        
-        // Labels fade in after 2s
-        setTimeout(() => {
-            document.querySelectorAll('.chart-label').forEach(l => l.classList.add('visible'));
-        }, 100); // The CSS handles the 2s delay
+        // V57: Double RAF to ensure Line Draw triggers correctly
+        requestAnimationFrame(() => {
+            const line = svg.querySelector('.trend-line');
+            const area = svg.querySelector('.trend-area');
+            if(line) {
+                // Reset
+                line.style.transition = 'none';
+                line.style.strokeDasharray = line.getTotalLength();
+                line.style.strokeDashoffset = line.getTotalLength();
+                if(area) area.classList.remove('visible');
+                
+                // Force Reflow & Animate
+                requestAnimationFrame(() => {
+                    line.getBoundingClientRect(); 
+                    line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
+                    line.style.strokeDashoffset = '0';
+                    // Fade in Area
+                    if(area) {
+                        // Wait for reflow before setting timeout to align with transition
+                        setTimeout(() => area.classList.add('visible'), 100); 
+                    }
+                });
+                
+                document.querySelectorAll('.chart-label').forEach(l => {
+                    l.classList.remove('visible');
+                    setTimeout(() => l.classList.add('visible'), 1500);
+                });
+            }
+        });
 
         setupInteraction(w, h, currentVal);
     }
@@ -995,19 +1011,12 @@
         const pctNet = (data.networth / total) * 100;
         const pctDebt = (data.debt / total) * 100;
         const pctInt = (data.interest / total) * 100;
-        
-        const barNet = document.getElementById('barNetworth');
-        const barDebt = document.getElementById('barDebt');
-        const barInt = document.getElementById('barInterest');
-        
-        barNet.style.width = pctNet + '%';
-        barDebt.style.width = pctDebt + '%';
-        barInt.style.width = pctInt + '%';
-
+        document.getElementById('barNetworth').style.width = pctNet + '%';
+        document.getElementById('barDebt').style.width = pctDebt + '%';
+        document.getElementById('barInterest').style.width = pctInt + '%';
         document.getElementById('structNetWorth').innerText = formatCompact(data.networth);
         const debtRatio = ((data.debt + data.interest) / total * 100).toFixed(1);
         document.getElementById('structDebtRatio').innerText = debtRatio + '%';
-        
         const legendBox = document.getElementById('legendLeverage');
         legendBox.innerHTML = '';
         const keys = ['networth', 'debt', 'interest'];
@@ -1039,6 +1048,7 @@
         const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
         
+        // V57: No Decimals in Pie
         document.getElementById(valId).innerText = formatCompact(Math.round(total));
 
         const legendBox = document.getElementById(legendId);
