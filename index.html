@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V48.1 Fix)</title>
+    <title>My Net Worth (V49 Rolling Nums)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -190,9 +190,20 @@
         .asset-list-container { display: grid; gap: 15px; }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
-        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ease-out-expo); }
-        .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        /* V49: Staggered Fade-in Animation for Cards */
+        .category-group { 
+            border-radius: 16px; overflow: hidden; background-color: var(--card); 
+            border: 1px solid #1a1a1a; transition: all 0.3s var(--ease-out-expo); 
+            opacity: 0; transform: translateY(20px); /* Initial state for animation */
+        }
+        .category-group:hover {
+            transform: translateY(-2px);
+            background-color: var(--card-hover);
+            border-color: #333;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
+        
         .category-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; min-height: 44px; }
         
         .cat-title-area { display: flex; align-items: center; gap: 12px; }
@@ -202,7 +213,10 @@
         .cat-name { font-size: 16px; font-weight: bold; color: #fff; }
         .cat-count { font-size: 12px; color: var(--subtext); background: #222; padding: 2px 8px; border-radius: 10px; }
         .cat-total-area { text-align: right; }
-        .cat-amount { font-size: 16px; font-weight: bold; color: #fff; display: block; }
+        
+        /* V49: Monospace font for rolling numbers prevents jitter */
+        .cat-amount { font-size: 16px; font-weight: bold; color: #fff; display: block; font-feature-settings: "tnum"; font-variant-numeric: tabular-nums; }
+        
         .cat-pct { font-size: 12px; color: var(--subtext); }
         .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; margin-left: 10px; font-size: 12px;}
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
@@ -341,7 +355,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V48.1<br>Fix Pie Value
+                Vibe Coding V49.0<br>Rolling Numbers
             </div>
         </div>
     </div>
@@ -401,13 +415,66 @@
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         navEl.classList.add('active');
         
+        // Replay Pie
         if(pageId === 'analysis') {
             document.querySelectorAll('.chart-card').forEach(card => {
                 card.classList.remove('pie-anim');
-                void card.offsetWidth; // Trigger reflow
+                void card.offsetWidth; 
                 card.classList.add('pie-anim');
             });
         }
+        
+        // V49: Replay List Animations
+        if(pageId === 'list') {
+            // 1. Stagger Cards
+            const cards = document.querySelectorAll('.category-group');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                // Delay based on index
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 80); // 80ms gap
+            });
+
+            // 2. Count Up Numbers
+            document.querySelectorAll('.cat-amount').forEach(el => {
+                const targetText = el.getAttribute('data-value'); // We need to store original text or raw value
+                if(targetText) {
+                    const cleanVal = targetText.replace(/[^0-9.-]+/g,""); // Remove NT$, commas
+                    animateValue(el, 0, parseFloat(cleanVal), 1500, targetText.includes('-'));
+                }
+            });
+        }
+    }
+
+    // V49: Rolling Number Animation Function
+    function animateValue(obj, start, end, duration, isNegative) {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            // Ease out expo for smoothness
+            const easeProgress = 1 - Math.pow(2, -10 * progress);
+            
+            const currentVal = Math.floor(easeProgress * (end - start) + start);
+            
+            // Format back to currency string
+            let displayStr = Math.abs(currentVal).toLocaleString();
+            if(isNegative) displayStr = '- ' + displayStr;
+            obj.innerHTML = "NT$ " + displayStr;
+            
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            } else {
+                // Ensure final value is exact
+                let finalStr = Math.abs(end).toLocaleString();
+                if(isNegative) finalStr = '- ' + finalStr;
+                obj.innerHTML = "NT$ " + finalStr;
+            }
+        };
+        window.requestAnimationFrame(step);
     }
 
     function saveUrl() { localStorage.setItem('vibeSheetUrl', document.getElementById('csvUrl').value); fetchData(); }
@@ -598,7 +665,7 @@
                             <span class="cat-count">${items.length}</span>
                         </div>
                         <div class="cat-total-area">
-                            <span class="cat-amount">NT$ ${displayTotal}</span>
+                            <span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span>
                             <span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span>
                         </div>
                         <div class="arrow-icon">▼</div>
@@ -812,11 +879,10 @@
                 cur += deg;
             }
         }
-        // V48: Apply gradient to the ring element instead of the container
-        const ring = document.getElementById(chartId); // This ID is now on the ring div
+        
+        const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
         
-        // V48.1: FIX - Update inner text value
         document.getElementById(valId).innerText = formatCompact(total);
 
         const legendBox = document.getElementById(legendId);
