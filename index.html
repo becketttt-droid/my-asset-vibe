@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V51 Swipe & Units)</title>
+    <title>My Net Worth (V52 iOS Motion)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -36,7 +36,8 @@
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
             
-            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            /* V52: iOS Physics Curve (Quart/Quint Ease Out) */
+            --ios-ease: cubic-bezier(0.25, 1, 0.5, 1);
             --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
@@ -54,28 +55,40 @@
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
-            touch-action: pan-y; /* V51: Allow vertical scroll, handle horizontal manually */
+            touch-action: pan-y; 
         }
 
         .container { width: 100%; max-width: 1100px; position: relative; min-height: 80vh; }
 
-        /* V51: Advanced Page Transitions (Slide effect) */
+        /* V52: Slower, iOS-style Page Transitions */
         .page { 
             display: none; 
             width: 100%;
+            /* Default hidden state */
+            opacity: 0;
+            transform: translateY(10px) scale(0.99); 
         }
-        .page.active { display: block; }
+        .page.active { 
+            display: block; 
+            /* Default entry (fade up) */
+            animation: pageEnter 0.6s var(--ios-ease) forwards;
+        }
         
-        /* Slide Animations */
-        .slide-in-right { animation: slideInRight 0.3s var(--ease-out-expo) forwards; }
-        .slide-in-left { animation: slideInLeft 0.3s var(--ease-out-expo) forwards; }
+        @keyframes pageEnter { 
+            from { opacity: 0; transform: translateY(10px) scale(0.99); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
+        
+        /* Swipe Animations - Slower & Smoother */
+        .slide-in-right { animation: slideInRight 0.5s var(--ios-ease) forwards; }
+        .slide-in-left { animation: slideInLeft 0.5s var(--ios-ease) forwards; }
         
         @keyframes slideInRight { 
-            from { opacity: 0; transform: translateX(30px); } 
+            from { opacity: 0; transform: translateX(50px); } /* Slightly larger distance */
             to { opacity: 1; transform: translateX(0); } 
         }
         @keyframes slideInLeft { 
-            from { opacity: 0; transform: translateX(-30px); } 
+            from { opacity: 0; transform: translateX(-50px); } 
             to { opacity: 1; transform: translateX(0); } 
         }
 
@@ -93,9 +106,9 @@
             flex: 1; height: 100%;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; position: relative;
-            transition: transform 0.2s var(--ease-out-expo);
+            transition: transform 0.2s var(--ios-ease);
         }
-        .nav-item:active { transform: scale(0.9); }
+        .nav-item:active { transform: scale(0.92); } /* Subtle press */
         .nav-item:hover .nav-icon svg { fill: var(--nav-hover); opacity: 1; transform: translateY(-3px); filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
         .nav-item.active .nav-icon svg { fill: var(--nav-active); opacity: 1; transform: translateY(-5px) scale(1.15); filter: drop-shadow(0 0 8px rgba(255,255,255,0.6)); }
         .nav-item.active::after {
@@ -103,10 +116,10 @@
             width: 4px; height: 4px; border-radius: 50%;
             background-color: var(--nav-active);
             box-shadow: 0 0 6px var(--nav-active);
-            animation: dotPop 0.4s var(--ease-elastic);
+            animation: dotPop 0.5s var(--ease-elastic);
         }
         @keyframes dotPop { from { transform: scale(0); } to { transform: scale(1); } }
-        .nav-icon svg { width: 24px; height: 24px; fill: var(--nav-inactive); transition: all 0.4s var(--ease-elastic); opacity: 0.6; }
+        .nav-icon svg { width: 24px; height: 24px; fill: var(--nav-inactive); transition: all 0.5s var(--ease-elastic); opacity: 0.6; }
 
         /* Config Box */
         .config-box { background: #121212; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #222; }
@@ -124,16 +137,23 @@
 
         header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
         .total-title { font-size: 14px; color: #666; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
-        .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
+        /* V52: Tabular nums for stable rolling */
+        .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); font-variant-numeric: tabular-nums; }
         .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
 
         /* Trend Chart */
-        .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ease-out-expo); }
+        .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
-        .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+        .trend-line { 
+            fill: none; stroke: var(--trend-line); stroke-width: 2.5; 
+            stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
+            /* V52: Line Draw Animation handled by JS */
+        }
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); }
+        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 1.5s; /* Delay label fade in */ }
+        .chart-label.visible { opacity: 1; } /* Trigger class */
+        
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
         .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
@@ -151,7 +171,8 @@
         /* Structure Bar */
         .structure-container { width: 100%; margin-bottom: 20px; padding: 0 10px; }
         .structure-bar { width: 100%; height: 24px; background: #222; border-radius: 12px; display: flex; overflow: hidden; margin-bottom: 10px; }
-        .struct-seg { height: 100%; transition: width 0.5s ease; }
+        /* V52: Smooth Width Transition */
+        .struct-seg { height: 100%; width: 0%; transition: width 1.2s var(--ios-ease); }
         .struct-metrics { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext); }
         .struct-metric-item { text-align: center; }
         .metric-big.net-highlight { color: #3E7091; }
@@ -162,7 +183,7 @@
         .analysis-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 600px) { .analysis-grid { grid-template-columns: 1fr 1fr; } }
 
-        .chart-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; transition: transform 0.3s var(--ease-out-expo), border-color 0.3s; }
+        .chart-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; transition: transform 0.3s var(--ios-ease), border-color 0.3s; }
         .chart-card:hover { transform: translateY(-3px); border-color: #333; }
         .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--subtext); width: 100%; text-align: center; }
         
@@ -196,7 +217,7 @@
         .asset-list-container { display: grid; gap: 15px; }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
-        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ease-out-expo); opacity: 0; transform: translateY(20px); }
+        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); opacity: 0; transform: translateY(20px); }
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
         
@@ -223,7 +244,7 @@
         
         .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; font-size: 12px; display: flex; align-items: center; justify-content: center;}
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
-        .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ease-out-expo); background-color: #000; }
+        .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ios-ease); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
 
         .asset-item { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.2s; }
@@ -288,9 +309,9 @@
                     </div>
                 </div>
                 <div class="structure-bar">
-                    <div id="barNetworth" class="struct-seg" style="background:#3E7091; width:0%;"></div>
-                    <div id="barDebt" class="struct-seg" style="background:#A6444D; width:0%;"></div>
-                    <div id="barInterest" class="struct-seg" style="background:#596275; width:0%;"></div>
+                    <div id="barNetworth" class="struct-seg" style="background:#3E7091;"></div>
+                    <div id="barDebt" class="struct-seg" style="background:#A6444D;"></div>
+                    <div id="barInterest" class="struct-seg" style="background:#596275;"></div>
                 </div>
             </div>
             <div id="legendLeverage" class="legend-box"></div>
@@ -358,7 +379,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V51.0<br>Swipe & Units
+                Vibe Coding V52.0<br>iOS Motion
             </div>
         </div>
     </div>
@@ -425,19 +446,15 @@
         const endX = e.changedTouches[0].clientX;
         const diff = startX - endX;
         
-        // Threshold for swipe (e.g., 50px)
         if (Math.abs(diff) > 50) {
-            // Find current active page index
             const activePage = document.querySelector('.page.active');
             const currentIndex = pages.indexOf(activePage.id.replace('page-', ''));
             
             if (diff > 0) {
-                // Swipe Left -> Next Page
                 if (currentIndex < pages.length - 1) {
                     switchPage(pages[currentIndex + 1], null, 'left');
                 }
             } else {
-                // Swipe Right -> Prev Page
                 if (currentIndex > 0) {
                     switchPage(pages[currentIndex - 1], null, 'right');
                 }
@@ -449,30 +466,67 @@
         const targetPage = document.getElementById('page-' + pageId);
         const allPages = document.querySelectorAll('.page');
         
-        // Remove animation classes
         allPages.forEach(p => {
             p.classList.remove('active', 'slide-in-right', 'slide-in-left');
         });
         
-        // Add animation based on direction
         if (direction === 'left') {
             targetPage.classList.add('slide-in-right');
         } else if (direction === 'right') {
             targetPage.classList.add('slide-in-left');
         } else {
-            // Default fade for tap
-            targetPage.style.animation = 'pageEnter 0.5s var(--ease-out-expo) forwards';
+            targetPage.style.animation = 'pageEnter 0.6s var(--ios-ease) forwards';
         }
         
         targetPage.classList.add('active');
         
-        // Update Nav
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        // Find corresponding nav item
         const navIndex = pages.indexOf(pageId);
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
+        // V52: Replay Home Animations
+        if(pageId === 'home') {
+            // 1. Re-roll Net Worth
+            // Need to retrieve the stored total. We can store it on the element or global var.
+            // Simplified: Re-calculate from displayed text if clean, or re-fetch.
+            // Better: Global var.
+            if(window.cachedTotal) {
+                const totalEl = document.getElementById('displayTotal');
+                let displayNum = window.cachedTotal;
+                let suffix = "";
+                if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
+                else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
+                animateValue(totalEl, 0, displayNum, 1500, window.cachedTotal < 0, suffix);
+            }
+
+            // 2. Re-animate Structure Bar
+            const bars = document.querySelectorAll('.struct-seg');
+            // Reset widths
+            bars.forEach(b => { 
+                const w = b.style.width; 
+                b.style.width = '0%'; 
+                setTimeout(() => b.style.width = w, 50); 
+            });
+
+            // 3. Re-draw Trend Line
+            const line = document.querySelector('.trend-line');
+            if(line) {
+                line.style.transition = 'none';
+                line.style.strokeDasharray = line.getTotalLength();
+                line.style.strokeDashoffset = line.getTotalLength();
+                line.getBoundingClientRect(); // Trigger reflow
+                line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
+                line.style.strokeDashoffset = '0';
+                
+                // Also reset labels fade in
+                document.querySelectorAll('.chart-label').forEach(l => {
+                    l.classList.remove('visible');
+                    setTimeout(() => l.classList.add('visible'), 1500);
+                });
+            }
+        }
+
         if(pageId === 'analysis') {
             document.querySelectorAll('.chart-card').forEach(card => {
                 card.classList.remove('pie-anim');
@@ -496,27 +550,17 @@
                 const targetText = el.getAttribute('data-value');
                 if(targetText) {
                     const cleanVal = targetText.replace(/[^0-9.-]+/g,"");
-                    // V51: Format text logic
                     const num = parseFloat(cleanVal);
-                    // Pass formatted suffix info to animator
                     let suffix = "";
                     let displayNum = num;
-                    
-                    if(Math.abs(num) >= 100000000) {
-                        suffix = " 億";
-                        displayNum = num / 100000000;
-                    } else if (Math.abs(num) >= 10000) {
-                        suffix = " 萬";
-                        displayNum = num / 10000;
-                    }
-                    
+                    if(Math.abs(num) >= 100000000) { suffix = " 億"; displayNum = num / 100000000; } 
+                    else if (Math.abs(num) >= 10000) { suffix = " 萬"; displayNum = num / 10000; }
                     animateValue(el, 0, displayNum, 2500, targetText.includes('-'), suffix);
                 }
             });
         }
     }
 
-    // V51: Updated Animator with Suffix
     function animateValue(obj, start, end, duration, isNegative, suffix) {
         let startTimestamp = null;
         const step = (timestamp) => {
@@ -524,10 +568,8 @@
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const easeProgress = 1 - Math.pow(1 - progress, 5);
             
-            // Calculate current value (keep decimals for small rolling)
             const currentVal = easeProgress * (end - start) + start;
             
-            // Format: if suffix exists, show 2 decimals usually, else integer
             let displayStr = "";
             if (suffix) {
                 displayStr = currentVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -536,12 +578,11 @@
             }
             
             if(isNegative) displayStr = '- ' + displayStr;
-            obj.innerHTML = "NT$ " + displayStr + suffix;
+            obj.innerHTML = displayStr + suffix;
             
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                // Final State
                 let finalStr = "";
                 if (suffix) {
                     finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -550,7 +591,7 @@
                 }
                 
                 if(isNegative) finalStr = '- ' + finalStr;
-                obj.innerHTML = "NT$ " + finalStr + suffix;
+                obj.innerHTML = finalStr + suffix;
             }
         };
         window.requestAnimationFrame(step);
@@ -574,10 +615,9 @@
         return (num / 1000).toFixed(1) + 'k';
     }
     
-    // V51: Helper for Chinese Currency
     function formatChineseCurrency(num) {
         if (Math.abs(num) >= 100000000) return (num / 100000000).toFixed(2) + ' 億';
-        if (Math.abs(num) >= 10000) return (num / 10000).toFixed(2) + ' 萬'; // Using 2 decimals for precision
+        if (Math.abs(num) >= 10000) return (num / 10000).toFixed(2) + ' 萬';
         return Math.round(num).toLocaleString();
     }
     
@@ -707,10 +747,39 @@
         let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
         let totalLiabilities = totalDebtAbs + totalInterestAbs;
 
-        document.getElementById('displayTotal').innerText = Math.round(totalNetWorth).toLocaleString();
+        // V52: Store total for animation replay
+        window.cachedTotal = totalNetWorth;
+        
+        // Initial Draw (Home is active by default, so trigger animations)
+        let displayNum = totalNetWorth;
+        let suffix = "";
+        if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
+        else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
+        
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, suffix);
         
         drawTrendChart(historyData, totalNetWorth);
+        
+        // Structure Bar Animation Logic (Initial)
         drawStructureBar(leverage, totalGrossAssets);
+        // Trigger fill animation after draw
+        setTimeout(() => {
+            const bars = document.querySelectorAll('.struct-seg');
+            // We need to re-apply the widths because drawStructureBar set them immediately.
+            // Ideally, drawStructureBar should set 0 then animate.
+            // Let's force a reflow here for the first load.
+            // (Function drawStructureBar modified to set width, here we just let it happen or reset if needed)
+            // Actually, best way is to let drawStructureBar set the final width, but since it's just HTML,
+            // the transition in CSS will handle it if we start from 0.
+            // But on first load, elements are created with width.
+            // Let's reset them to 0 and set again.
+            bars.forEach(b => {
+                const finalW = b.style.width;
+                b.style.width = '0%';
+                setTimeout(() => b.style.width = finalW, 50);
+            });
+        }, 100);
+
         drawPie('chartDebt', 'legendDebt', 'valDebt', debtBreakdown, totalLiabilities, ['debt', 'interest']);
         drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond']);
         drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
@@ -725,7 +794,6 @@
                 let groupTotal = items.reduce((sum, item) => sum + item.valTWD, 0);
                 let isDebtGroup = (key === 'debt');
                 
-                // V51: Use Format Helper for initial static display (prevents flicker before anim)
                 let displayTotal = formatChineseCurrency(groupTotal);
                 if(isDebtGroup) displayTotal = `- ${displayTotal}`;
 
@@ -841,6 +909,8 @@
             if (i === maxIdx || i === minIdx) {
                 let labelDiv = document.createElement('div');
                 labelDiv.className = 'chart-label';
+                // Trigger visibility after delay
+                labelDiv.classList.add('visible'); // Actually let CSS delay handle it
                 labelDiv.innerText = formatTrendVal(p.val);
                 labelDiv.style.left = (x / 10) + '%';
                 let offset = (i === maxIdx) ? -25 : 10;
@@ -848,6 +918,9 @@
                 if (i === 0) labelDiv.classList.add('left');
                 if (i === points.length - 1) labelDiv.classList.add('right');
                 labelContainer.appendChild(labelDiv);
+                
+                // Manually trigger fade in
+                setTimeout(() => labelDiv.classList.add('visible'), 100);
             }
         });
         
@@ -857,6 +930,16 @@
         const group = document.getElementById('crosshairGroup').outerHTML;
         svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
         
+        // Animate stroke
+        const line = svg.querySelector('.trend-line');
+        const length = line.getTotalLength();
+        line.style.transition = 'none';
+        line.style.strokeDasharray = length;
+        line.style.strokeDashoffset = length;
+        line.getBoundingClientRect();
+        line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
+        line.style.strokeDashoffset = '0';
+
         setupInteraction(w, h, currentVal);
     }
 
@@ -936,12 +1019,20 @@
         const pctNet = (data.networth / total) * 100;
         const pctDebt = (data.debt / total) * 100;
         const pctInt = (data.interest / total) * 100;
-        document.getElementById('barNetworth').style.width = pctNet + '%';
-        document.getElementById('barDebt').style.width = pctDebt + '%';
-        document.getElementById('barInterest').style.width = pctInt + '%';
+        
+        const barNet = document.getElementById('barNetworth');
+        const barDebt = document.getElementById('barDebt');
+        const barInt = document.getElementById('barInterest');
+        
+        // Set final widths but don't animate yet (handled by switchPage re-trigger or init timeout)
+        barNet.style.width = pctNet + '%';
+        barDebt.style.width = pctDebt + '%';
+        barInt.style.width = pctInt + '%';
+
         document.getElementById('structNetWorth').innerText = formatCompact(data.networth);
         const debtRatio = ((data.debt + data.interest) / total * 100).toFixed(1);
         document.getElementById('structDebtRatio').innerText = debtRatio + '%';
+        
         const legendBox = document.getElementById('legendLeverage');
         legendBox.innerHTML = '';
         const keys = ['networth', 'debt', 'interest'];
