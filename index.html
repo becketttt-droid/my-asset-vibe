@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V53 Mobile Polish)</title>
+    <title>My Net Worth (V54 Polish)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -17,7 +17,7 @@
             --bg: #000000;
             --card: #121212;
             --card-hover: #1a1a1a;
-            --nav-bg: #000000; /* V53: Solid black for blend */
+            --nav-bg: #000000;
             
             --text: #ffffff;
             --subtext: #888888;
@@ -46,23 +46,45 @@
             background-color: var(--bg); color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0; 
-            /* V53: Layout Fixes */
             padding: 0;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
             overflow-x: hidden;
             touch-action: pan-y;
-            -webkit-font-smoothing: antialiased; /* Crisp fonts on iOS */
+            -webkit-font-smoothing: antialiased;
         }
 
         .container { 
-            width: 100%; max-width: 600px; /* V53: Constrain width for better mobile emulation on desktop */
+            width: 100%; max-width: 600px; 
             position: relative; 
             min-height: 100vh;
-            padding: calc(20px + var(--safe-top)) 20px calc(90px + var(--safe-bottom)) 20px; /* Bottom padding for nav */
+            padding: calc(20px + var(--safe-top)) 20px calc(90px + var(--safe-bottom)) 20px; 
         }
 
-        /* --- V53: Hero Header Optimization --- */
+        /* --- V54: Loading Overlay --- */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(15px);
+            z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        .loading-overlay.active { opacity: 1; pointer-events: all; }
+        
+        .spinner {
+            width: 44px; height: 44px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .loading-text { font-size: 14px; color: var(--subtext); letter-spacing: 1px; font-weight: 500; }
+
+        /* --- Hero Header --- */
         header { 
             text-align: center; 
             margin-bottom: 25px; 
@@ -73,43 +95,20 @@
             font-size: 13px; color: #666; letter-spacing: 2px; 
             text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
         }
-        
-        /* The main number container */
         .total-amount-box {
-            display: flex; 
-            align-items: baseline; /* Align bottom of numbers */
-            justify-content: center;
-            line-height: 1;
-            gap: 4px; /* Space between elements */
+            display: flex; align-items: baseline; justify-content: center;
+            line-height: 1; gap: 4px;
         }
-        
-        .currency-symbol {
-            font-size: 20px; 
-            font-weight: 500; 
-            color: var(--subtext);
-            transform: translateY(-4px); /* Slight visual lift */
-        }
-        
+        .currency-symbol { font-size: 20px; font-weight: 500; color: var(--subtext); transform: translateY(-4px); }
         .total-main-num {
-            /* Responsive font size: minimum 40px, preferred 11vw, max 56px */
-            font-size: clamp(40px, 12vw, 64px); 
-            font-weight: 700; 
-            color: #fff;
-            font-variant-numeric: tabular-nums;
-            letter-spacing: -1px;
+            font-size: clamp(40px, 12vw, 64px); font-weight: 700; color: #fff;
+            font-variant-numeric: tabular-nums; letter-spacing: -1px;
         }
-        
-        .unit-tag {
-            font-size: 20px; 
-            font-weight: 500; 
-            color: var(--text);
-            margin-left: 2px;
-        }
+        .unit-tag { font-size: 20px; font-weight: 500; color: var(--text); margin-left: 2px; }
 
         /* --- Page & Transitions --- */
         .page { display: none; width: 100%; opacity: 0; transform: translateY(10px) scale(0.99); }
         .page.active { display: block; animation: pageEnter 0.6s var(--ios-ease) forwards; }
-        
         @keyframes pageEnter { from { opacity: 0; transform: translateY(10px) scale(0.99); } to { opacity: 1; transform: translateY(0) scale(1); } }
         .slide-in-right { animation: slideInRight 0.5s var(--ios-ease) forwards; }
         .slide-in-left { animation: slideInLeft 0.5s var(--ios-ease) forwards; }
@@ -119,8 +118,7 @@
         /* --- Navigation Bar --- */
         .nav-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(0,0,0,0.85); /* V53: Slight transparency */
-            backdrop-filter: blur(20px); /* iOS Blur */
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
             border-top: 1px solid #1a1a1a;
             display: flex; justify-content: space-around; align-items: center;
             padding-bottom: var(--safe-bottom);
@@ -129,6 +127,7 @@
         }
         .nav-item { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: transform 0.2s var(--ios-ease); }
         .nav-item:active { transform: scale(0.92); }
+        .nav-item:hover .nav-icon svg { fill: var(--nav-hover); opacity: 1; transform: translateY(-3px); filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
         .nav-item.active .nav-icon svg { fill: var(--nav-active); opacity: 1; transform: translateY(-5px) scale(1.15); filter: drop-shadow(0 0 8px rgba(255,255,255,0.6)); }
         .nav-item.active::after { content: ''; position: absolute; bottom: 12px; width: 4px; height: 4px; border-radius: 50%; background-color: var(--nav-active); box-shadow: 0 0 6px var(--nav-active); animation: dotPop 0.5s var(--ease-elastic); }
         @keyframes dotPop { from { transform: scale(0); } to { transform: scale(1); } }
@@ -197,73 +196,33 @@
         .legend-item { display: flex; align-items: center; background: #222; padding: 4px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #333; white-space: nowrap; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
-        /* Asset List (V53: Optimized) */
-        .asset-list-container { display: grid; gap: 12px; } /* Slightly tighter gap */
+        /* Asset List */
+        .asset-list-container { display: grid; gap: 12px; }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
-        .category-group { 
-            border-radius: 16px; overflow: hidden; background-color: var(--card); 
-            border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); 
-            opacity: 0; transform: translateY(20px); 
-        }
+        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ios-ease); opacity: 0; transform: translateY(20px); }
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
+        .category-header { padding: 16px; min-height: 64px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         
-        /* V53: The Perfect Mobile Grid Header */
-        .category-header { 
-            padding: 16px; /* Optimized padding */
-            min-height: 64px;
-            cursor: pointer;
-            display: flex; /* Flex is better for responsive text truncation */
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-        
-        /* Left: Icon + Name (Flexible, can truncate) */
-        .cat-left-content { 
-            display: flex; align-items: center; gap: 12px; 
-            flex: 1; /* Allow taking available space */
-            min-width: 0; /* Enable flex child truncation */
-        }
+        .cat-left-content { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
         .cat-icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); flex-shrink: 0; }
         .category-group:hover .cat-icon-box { transform: scale(1.1); }
         .cat-icon-box svg { width: 18px; height: 18px; }
-        
         .cat-text-info { display: flex; align-items: baseline; gap: 6px; overflow: hidden; }
-        .cat-name { 
-            font-size: 15px; font-weight: 700; color: #fff; 
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; 
-        }
-        /* V53: Hide count on small screens to save space */
-        .cat-count { 
-            font-size: 10px; color: var(--subtext); background: #222; 
-            padding: 1px 6px; border-radius: 8px; white-space: nowrap; 
-            display: none; /* Default hidden on mobile */
-        }
-        @media (min-width: 360px) { .cat-count { display: inline-block; } } /* Show on larger phones */
+        .cat-name { font-size: 15px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .cat-count { font-size: 10px; color: var(--subtext); background: #222; padding: 1px 6px; border-radius: 8px; white-space: nowrap; display: none; }
+        @media (min-width: 360px) { .cat-count { display: inline-block; } }
         
-        /* Right: Amount + Pct (Rigid, aligned right) */
-        .cat-right-content { 
-            display: flex; flex-direction: column; align-items: flex-end; justify-content: center; 
-            flex-shrink: 0; /* Never shrink this */
-        }
+        .cat-right-content { display: flex; flex-direction: column; align-items: flex-end; justify-content: center; flex-shrink: 0; }
         .cat-amount { 
-            /* V53: Optimized font size for mobile */
             font-size: 15px; font-weight: 700; color: #fff; 
             font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            font-variant-numeric: tabular-nums; /* Critical for alignment */
-            letter-spacing: -0.3px;
-            line-height: 1.2;
+            font-variant-numeric: tabular-nums; letter-spacing: -0.3px; line-height: 1.2;
         }
         .cat-pct { font-size: 11px; color: var(--subtext); margin-top: 2px; }
-        
-        .arrow-icon { 
-            transition: transform 0.3s ease; opacity: 0.4; font-size: 10px; 
-            margin-left: 5px; flex-shrink: 0;
-        }
+        .arrow-icon { transition: transform 0.3s ease; opacity: 0.4; font-size: 10px; margin-left: 5px; flex-shrink: 0; }
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
-        
         .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ios-ease); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
 
@@ -276,14 +235,16 @@
         .asset-val small { font-size: 10px; opacity: 0.7; display: block;}
         .is-debt .cat-amount, .is-debt .asset-val { color: #A6444D; }
         .is-interest .asset-val { color: #596275; }
-
-        .loading-text { color: #f39c12; text-align: center; margin-top: 20px; display: none;}
-        .error-text { color: #e74c3c; background: rgba(231, 76, 60, 0.1); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; display: none; line-height: 1.5;}
         
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; padding-left: 5px; border-left: 3px solid var(--accent); line-height: 1; margin-top: 10px;}
     </style>
 </head>
 <body>
+
+<div id="loadingOverlay" class="loading-overlay active">
+    <div class="spinner"></div>
+    <div class="loading-text">同步資產數據...</div>
+</div>
 
 <div class="container" id="mainContainer">
     <div id="page-home" class="page active">
@@ -403,12 +364,10 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V53.0<br>Mobile Perfect
+                Vibe Coding V54.0<br>No Decimals
             </div>
         </div>
     </div>
-
-    <div id="loading" class="loading-text">運算中...</div>
 
     <nav class="nav-bar">
         <div class="nav-item active" onclick="switchPage('home', this)">
@@ -502,15 +461,12 @@
         // Replay Animations
         if(pageId === 'home') {
             if(window.cachedTotal) {
-                // V53: Use split elements for total animation
                 let displayNum = window.cachedTotal;
                 let suffix = "";
                 if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
                 else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
                 
-                // Animate just the number part
                 animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, window.cachedTotal < 0, "");
-                // Set the unit
                 document.getElementById('displayUnit').innerText = suffix;
             }
 
@@ -566,7 +522,6 @@
                     if(Math.abs(num) >= 100000000) { suffix = " 億"; displayNum = num / 100000000; } 
                     else if (Math.abs(num) >= 10000) { suffix = " 萬"; displayNum = num / 10000; }
                     
-                    // V53: Prefix NT$ manually here for list
                     animateValue(el, 0, displayNum, 2500, targetText.includes('-'), suffix, "NT$ ");
                 }
             });
@@ -599,6 +554,7 @@
                 if (suffix) {
                     finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
                 } else {
+                    // V54: Enforce no decimals for final non-suffix values
                     finalStr = Math.round(end).toLocaleString();
                 }
                 obj.innerHTML = prefix + sign + finalStr + suffix;
@@ -638,13 +594,24 @@
     function toggleGroup(header) { header.parentElement.classList.toggle('open'); }
 
     async function fetchData(needsNetwork = true) {
-        let url = document.getElementById('csvUrl').value.trim();
-        if (!url) return;
-        if (!needsNetwork && window.cachedCSV) { parseCSV(window.cachedCSV); return; }
-
-        document.getElementById('loading').style.display = 'block';
+        // Show loading overlay
+        document.getElementById('loadingOverlay').classList.add('active');
         document.getElementById('errorMsg').style.display = 'none';
         
+        let url = document.getElementById('csvUrl').value.trim();
+        if (!url) {
+             document.getElementById('loadingOverlay').classList.remove('active');
+             return;
+        }
+        
+        // Check cache if no network needed
+        if (!needsNetwork && window.cachedCSV) { 
+            parseCSV(window.cachedCSV); 
+            // Small delay to let UI render before hiding overlay
+            setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 500);
+            return; 
+        }
+
         document.getElementById('assetListContainer').innerHTML = '';
 
         const cacheBuster = encodeURIComponent(url + '&t=' + Date.now());
@@ -665,9 +632,9 @@
         }
         if (success) {
             window.cachedCSV = text; parseCSV(text);
-            document.getElementById('loading').style.display = 'none';
+            setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 600);
         } else {
-            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loadingOverlay').classList.remove('active');
             document.getElementById('errorMsg').style.display = 'block';
             document.getElementById('errorMsg').innerHTML = `⚠️ 連線失敗，請重整。`;
         }
@@ -790,7 +757,8 @@
         order.forEach(key => {
             const items = groups[key];
             if(items && items.length > 0) {
-                let groupTotal = items.reduce((sum, item) => sum + item.valTWD, 0);
+                // V54: Force rounding for group total
+                let groupTotal = Math.round(items.reduce((sum, item) => sum + item.valTWD, 0));
                 let isDebtGroup = (key === 'debt');
                 
                 let displayTotal = formatChineseCurrency(groupTotal);
@@ -839,11 +807,15 @@
                     let tag = '';
                     if(isLiability) tag = item.typeStr;
                     else if(totalAssetsOnly > 0) tag = (item.valTWD / totalAssetsOnly * 100).toFixed(1) + '%';
+                    
+                    // V54: Force rounding for individual items
+                    let valRounded = Math.round(item.valTWD);
+                    
                     const itemEl = document.createElement('div');
                     itemEl.className = `asset-item ${itemClass}`;
                     itemEl.innerHTML = `
                         <div class="asset-info"><h4>${item.name}</h4><p>${item.qty} 單位 • ${item.displayPrice}</p></div>
-                        <div class="asset-val">${itemSign} NT$ ${Math.round(item.valTWD).toLocaleString()}<small>${tag}</small></div>
+                        <div class="asset-val">${itemSign} NT$ ${valRounded.toLocaleString()}<small>${tag}</small></div>
                     `;
                     contentDiv.appendChild(itemEl);
                 });
@@ -1040,7 +1012,8 @@
         const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
         
-        document.getElementById(valId).innerText = formatCompact(total);
+        // V54: Fix for Pie Center Text - No Decimals
+        document.getElementById(valId).innerText = formatCompact(Math.round(total));
 
         const legendBox = document.getElementById(legendId);
         legendBox.innerHTML = '';
