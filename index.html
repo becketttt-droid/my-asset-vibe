@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V33 Trading Style)</title>
+    <title>My Net Worth (V37 Time ROI)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -19,8 +19,11 @@
             --text: #ffffff;
             --subtext: #8b9bb4;
             --accent: #4a90e2;
-            --trend-line: #00d2d3; /* 青色線條 */
-            --trend-high: #4cd964; /* 最高/低點 綠色 */
+            --trend-line: #64869b; 
+            --trend-high: #64869b; 
+            --crosshair: #ffffff; 
+            --up: #4cd964; /* 漲幅綠 */
+            --down: #ff3b30; /* 跌幅紅 */
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -73,43 +76,61 @@
         .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
         .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
 
-        /* --- V33 Trend Chart Style --- */
+        /* --- V37 Trend Chart (Interactive) --- */
         .trend-wrapper {
-            width: 100%; height: 160px; /* 加高一點以容納標籤 */
+            width: 100%; height: 200px; /* 稍微加高給第三行資訊 */
             margin-bottom: 30px; position: relative;
-            background: #15171c; /* 深色背景襯托 */
+            background: #15171c;
             border-radius: 16px; overflow: hidden;
             display: none;
             box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            user-select: none; -webkit-user-select: none;
         }
         .trend-svg { width: 100%; height: 100%; display: block; }
         
-        /* 線條 */
         .trend-line { 
             fill: none; stroke: var(--trend-line); stroke-width: 2.5; 
             stroke-linecap: round; stroke-linejoin: round; 
         }
-        /* 漸層填充區域 */
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
         
-        /* 最高/最低點標示 */
-        .highlight-dot { 
-            fill: var(--bg); stroke: var(--trend-high); stroke-width: 2; r: 3.5; 
-        }
         .highlight-text {
-            fill: var(--trend-high); font-size: 11px; font-weight: bold; font-family: monospace;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+            fill: var(--trend-high); font-size: 12px; font-weight: 600;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.6);
         }
 
-        /* 互動 Tooltip */
-        .trend-tooltip {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(5px);
-            padding: 4px 10px; border-radius: 6px;
-            font-size: 12px; color: #fff; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-            border: 1px solid rgba(255,255,255,0.2); white-space: nowrap; z-index: 10;
+        /* V37: Crosshair Refined */
+        .crosshair-line {
+            stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; /* 實線，半透明 */
         }
-        .trend-tooltip.visible { opacity: 1; }
+        .crosshair-dot {
+            fill: var(--crosshair); /* 實心 */
+            stroke: none; 
+            r: 3; /* 縮小半徑 */
+        }
+        
+        /* V37: HUD Upgraded */
+        .chart-hud {
+            position: absolute; top: 12px; left: 15px;
+            pointer-events: none; opacity: 0; transition: opacity 0.2s;
+            z-index: 20;
+            display: flex; flex-direction: column; gap: 2px;
+        }
+        .chart-hud.visible { opacity: 1; }
+        .hud-date { color: var(--subtext); font-size: 11px; font-weight: 600; }
+        .hud-val { color: #fff; font-size: 15px; font-weight: bold; text-shadow: 0 0 10px rgba(0,0,0,0.5); }
+        
+        /* 新增：至今日漲跌幅 */
+        .hud-delta { font-size: 11px; font-weight: 600; margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+        .hud-delta.up { color: var(--up); }
+        .hud-delta.down { color: var(--down); }
+        .hud-delta.flat { color: var(--subtext); }
+
+        .trend-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            cursor: crosshair; z-index: 10;
+        }
 
         /* Charts Layout */
         .charts-wrapper {
@@ -154,7 +175,7 @@
         }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
-        .asset-list-container { display: grid; gap: 15px; } /* Grid for all devices */
+        .asset-list-container { display: grid; gap: 15px; }
         
         .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); transition: all 0.3s ease; }
         .category-group.open { box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -217,15 +238,26 @@
     </header>
 
     <div id="trendChartWrapper" class="trend-wrapper">
-        <div id="trendTooltip" class="trend-tooltip"></div>
+        <div id="chartHud" class="chart-hud">
+            <div id="hudDate" class="hud-date">DATE</div>
+            <div id="hudVal" class="hud-val">VALUE</div>
+            <div id="hudDelta" class="hud-delta">0% to Today</div>
+        </div>
+
         <svg id="trendSvg" class="trend-svg" viewBox="0 0 1000 200" preserveAspectRatio="none">
             <defs>
                 <linearGradient id="trendGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#00d2d3" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#00d2d3" stop-opacity="0"/>
+                    <stop offset="0%" stop-color="#64869b" stop-opacity="0.3"/>
+                    <stop offset="100%" stop-color="#64869b" stop-opacity="0"/>
                 </linearGradient>
             </defs>
-            </svg>
+            <g id="crosshairGroup" style="opacity: 0;">
+                <line id="crosshairX" y1="0" y2="200" class="crosshair-line" />
+                <line id="crosshairY" x1="0" x2="1000" class="crosshair-line" />
+                <circle id="crosshairDot" r="3" class="crosshair-dot" />
+            </g>
+        </svg>
+        <div id="trendOverlay" class="trend-overlay"></div>
     </div>
 
     <div class="charts-wrapper">
@@ -307,14 +339,12 @@
         result.push(current.trim()); return result;
     }
     
-    // 數字格式化 (含K, 萬, 億)
     function formatCompact(num) {
         if (num >= 100000000) return (num / 100000000).toFixed(2) + '億';
         if (num >= 10000) return (num / 10000).toFixed(0) + '萬';
         return (num / 1000).toFixed(1) + 'k';
     }
     
-    // 趨勢圖專用格式化 (例如 +159,551.89)
     function formatTrendVal(num) {
         return (num > 0 ? "+" : "") + Math.round(num).toLocaleString();
     }
@@ -434,7 +464,6 @@
             }
         }
 
-        // 智能排序
         historyData.sort((a, b) => new Date(a.date) - new Date(b.date));
 
         leverage.networth = totalNetWorth; leverage.debt = totalDebtAbs; leverage.interest = totalInterestAbs;
@@ -443,7 +472,9 @@
 
         document.getElementById('displayTotal').innerText = Math.round(totalNetWorth).toLocaleString();
         
-        drawTrendChart(historyData);
+        // V37: 傳入 currentNetWorth 供 ROI 計算使用
+        drawTrendChart(historyData, totalNetWorth);
+        
         drawStructureBar(leverage, totalGrossAssets);
         drawPie('chartDebt', 'legendDebt', 'valDebt', debtBreakdown, totalLiabilities, ['debt', 'interest']);
         drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond']);
@@ -508,8 +539,10 @@
         });
     }
 
-    // V33: 極致視覺趨勢圖 (Only Max/Min markers)
-    function drawTrendChart(history) {
+    let chartPoints = []; 
+
+    // V37: Added currentVal param for calculation
+    function drawTrendChart(history, currentVal) {
         const wrapper = document.getElementById('trendChartWrapper');
         const svg = document.getElementById('trendSvg');
         if (!history || history.length === 0) { wrapper.style.display = 'none'; return; }
@@ -517,31 +550,25 @@
         
         let points = [...history]; 
         let vals = points.map(p => p.val);
-        let maxVal = Math.max(...vals); 
-        let minVal = Math.min(...vals);
-        // 找出 max/min 的索引 (如果有多個，取最新的)
-        let maxIdx = vals.lastIndexOf(maxVal);
-        let minIdx = vals.lastIndexOf(minVal);
-
-        let range = maxVal - minVal; 
-        if(range === 0) range = 1;
+        let maxVal = Math.max(...vals); let minVal = Math.min(...vals);
+        let maxIdx = vals.lastIndexOf(maxVal); let minIdx = vals.lastIndexOf(minVal);
+        let range = maxVal - minVal; if(range === 0) range = 1;
         
-        // SVG 設定 (增加上下padding以容納文字)
-        const w = 1000; const h = 200; 
-        const paddingY = 40; // 上下邊距
+        const w = 1000; const h = 200; const paddingY = 40; 
         
-        let pathD = ""; let areaD = ""; 
-        let highlights = "";
-        let touchRects = "";
+        let pathD = ""; let areaD = ""; let highlights = "";
+        
+        chartPoints = [];
 
         points.forEach((p, i) => {
             let x = (i / (points.length - 1)) * w;
             if(points.length === 1) x = w/2;
             
-            // Y軸反轉
             let normalizedY = (p.val - minVal) / range;
             let y = (h - paddingY) - (normalizedY * (h - paddingY * 2));
             
+            chartPoints.push({ x, y, val: p.val, date: p.date });
+
             if (i === 0) {
                 pathD += `M ${x} ${y}`;
                 areaD += `M ${x} ${h} L ${x} ${y}`;
@@ -550,40 +577,95 @@
                 areaD += ` L ${x} ${y}`;
             }
 
-            // 只在 Max 或 Min 畫點和標籤
             if (i === maxIdx || i === minIdx) {
-                highlights += `<circle cx="${x}" cy="${y}" class="highlight-dot" />`;
-                
-                // 計算文字位置 (Max 在上方，Min 在下方)
-                let textY = (i === maxIdx) ? y - 15 : y + 25;
-                // 處理邊緣文字切邊問題 (最左靠左，最右靠右)
+                let textY = (i === maxIdx) ? y - 12 : y + 22;
                 let anchor = "middle";
                 if (i === 0) anchor = "start";
                 if (i === points.length - 1) anchor = "end";
-
                 highlights += `<text x="${x}" y="${textY}" class="highlight-text" text-anchor="${anchor}">${formatTrendVal(p.val)}</text>`;
             }
-
-            // 隱形觸控區 (保留所有點的互動)
-            touchRects += `<rect x="${x-20}" y="0" width="40" height="${h}" fill="transparent" 
-                            ontouchstart="showTooltip(evt, '${p.date}', ${p.val}, ${x})" 
-                            onmousemove="showTooltip(evt, '${p.date}', ${p.val}, ${x})" 
-                            onmouseout="hideTooltip()" />`;
         });
         
         areaD += ` L ${points[points.length-1].length === 1 ? w/2 : w} ${h} Z`;
         
-        // 重繪 SVG 內容 (保留 defs)
         const defs = svg.querySelector('defs').outerHTML;
-        svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${highlights}${touchRects}`;
+        const group = document.getElementById('crosshairGroup').outerHTML;
+        svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${highlights}${group}`;
+        
+        // Pass currentVal to interaction
+        setupInteraction(w, h, currentVal);
     }
 
-    window.showTooltip = function(evt, date, val, x) {
-        const tooltip = document.getElementById('trendTooltip');
-        tooltip.innerHTML = `${date}<br>NT$ ${formatCompact(val)}`;
-        tooltip.classList.add('visible');
+    // V37: Updated Interaction for Delta Calculation
+    function setupInteraction(svgWidth, svgHeight, currentTotal) {
+        const overlay = document.getElementById('trendOverlay');
+        const crosshairGroup = document.getElementById('crosshairGroup');
+        const crossX = document.getElementById('crosshairX');
+        const crossY = document.getElementById('crosshairY');
+        const crossDot = document.getElementById('crosshairDot');
+        
+        const hud = document.getElementById('chartHud');
+        const hudDate = document.getElementById('hudDate');
+        const hudVal = document.getElementById('hudVal');
+        const hudDelta = document.getElementById('hudDelta');
+
+        function handleMove(clientX) {
+            const rect = overlay.getBoundingClientRect();
+            const mouseX = clientX - rect.left;
+            const svgX = (mouseX / rect.width) * svgWidth;
+
+            if(chartPoints.length === 0) return;
+            
+            let nearest = chartPoints[0];
+            let minDist = Math.abs(svgX - nearest.x);
+
+            for(let p of chartPoints) {
+                let dist = Math.abs(svgX - p.x);
+                if(dist < minDist) {
+                    minDist = dist;
+                    nearest = p;
+                }
+            }
+
+            crosshairGroup.style.opacity = 1;
+            crossX.setAttribute('x1', nearest.x); crossX.setAttribute('x2', nearest.x);
+            crossY.setAttribute('y1', nearest.y); crossY.setAttribute('y2', nearest.y);
+            crossDot.setAttribute('cx', nearest.x); crossDot.setAttribute('cy', nearest.y);
+
+            // Update HUD Info
+            hud.classList.add('visible');
+            hudDate.innerText = nearest.date;
+            hudVal.innerText = formatTrendVal(nearest.val);
+
+            // Calculate Difference to Today
+            let diff = currentTotal - nearest.val;
+            let pct = 0;
+            if (nearest.val !== 0) pct = (diff / nearest.val) * 100;
+            
+            // Format Delta
+            let sign = diff >= 0 ? "+" : "";
+            let diffStr = sign + pct.toFixed(1) + "% to Today";
+            
+            hudDelta.innerText = diffStr;
+            hudDelta.className = 'hud-delta'; // reset
+            if (diff > 0) hudDelta.classList.add('up');
+            else if (diff < 0) hudDelta.classList.add('down');
+            else hudDelta.classList.add('flat');
+        }
+
+        function handleEnd() {
+            crosshairGroup.style.opacity = 0;
+            hud.classList.remove('visible');
+        }
+
+        overlay.onmousemove = (e) => handleMove(e.clientX);
+        overlay.onmouseleave = handleEnd;
+        overlay.ontouchmove = (e) => {
+            e.preventDefault();
+            handleMove(e.touches[0].clientX);
+        };
+        overlay.ontouchend = handleEnd;
     }
-    window.hideTooltip = function() { document.getElementById('trendTooltip').classList.remove('visible'); }
 
     function drawStructureBar(data, total) {
         if(total === 0) return;
