@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V55 Integer)</title>
+    <title>My Net Worth (V56 Sync)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -96,12 +96,11 @@
         .total-amount-box {
             display: flex; align-items: baseline; justify-content: center;
             line-height: 1; gap: 6px;
-            white-space: nowrap; /* V55: Force single line */
+            white-space: nowrap; 
             flex-wrap: nowrap;
         }
         .currency-symbol { font-size: 20px; font-weight: 500; color: var(--subtext); transform: translateY(-6px); }
         .total-main-num {
-            /* V55: Adjusted clamp for better fit */
             font-size: clamp(36px, 11vw, 60px); 
             font-weight: 700; color: #fff;
             font-variant-numeric: tabular-nums; letter-spacing: -1px;
@@ -155,8 +154,16 @@
         .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 1.5s; }
+        
+        /* V56: Sync Label Animation with Line Draw (2s delay) */
+        .chart-label { 
+            position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; 
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); 
+            opacity: 0; 
+            transition: opacity 0.5s ease 2s; /* 2s delay matches line draw time */
+        }
         .chart-label.visible { opacity: 1; }
+        
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
         .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
@@ -239,6 +246,8 @@
         .is-interest .asset-val { color: #596275; }
         
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; padding-left: 5px; border-left: 3px solid var(--accent); line-height: 1; margin-top: 10px;}
+        
+        /* V56: Removed .loading-text from bottom (deleted from HTML) */
     </style>
 </head>
 <body>
@@ -366,12 +375,10 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V55.0<br>No Decimals
+                Vibe Coding V56.0<br>Perfect Sync
             </div>
         </div>
     </div>
-
-    <div id="loading" class="loading-text">運算中...</div>
 
     <nav class="nav-bar">
         <div class="nav-item active" onclick="switchPage('home', this)">
@@ -462,7 +469,7 @@
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
-        // Replay Animations
+        // V56: Replay & Sync Home Animations
         if(pageId === 'home') {
             if(window.cachedTotal) {
                 let displayNum = window.cachedTotal;
@@ -470,7 +477,8 @@
                 if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
                 else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
                 
-                animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, window.cachedTotal < 0, "");
+                // Duration: 2000ms to match CSS
+                animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, window.cachedTotal < 0, "", "");
                 document.getElementById('displayUnit').innerText = suffix;
             }
 
@@ -483,16 +491,21 @@
 
             const line = document.querySelector('.trend-line');
             if(line) {
+                // Reset Line
                 line.style.transition = 'none';
                 line.style.strokeDasharray = line.getTotalLength();
                 line.style.strokeDashoffset = line.getTotalLength();
                 line.getBoundingClientRect(); 
+                // Animate Line (2s)
                 line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
                 line.style.strokeDashoffset = '0';
                 
+                // Reset Labels & Fade in at 2s
                 document.querySelectorAll('.chart-label').forEach(l => {
                     l.classList.remove('visible');
-                    setTimeout(() => l.classList.add('visible'), 1500);
+                    // CSS has 2s delay, just adding class triggers the waiting period
+                    void l.offsetWidth; 
+                    l.classList.add('visible');
                 });
             }
         }
@@ -532,7 +545,6 @@
         }
     }
 
-    // V55: Force Integer Animation
     function animateValue(obj, start, end, duration, isNegative, suffix, prefix = "") {
         let startTimestamp = null;
         const step = (timestamp) => {
@@ -542,17 +554,8 @@
             
             const currentVal = easeProgress * (end - start) + start;
             
-            // V55: Always use floor/round for display during animation, NO decimals
-            let displayStr = "";
-            if (suffix) {
-                // For Wan/Yi, we usually want 2 decimals, BUT user asked for NO DECIMALS
-                // Wait, typically for Wan/Yi 4228.26 Wan is standard.
-                // But user said "remove decimals everywhere".
-                // So 4228 Wan.
-                displayStr = Math.round(currentVal).toLocaleString();
-            } else {
-                displayStr = Math.round(currentVal).toLocaleString();
-            }
+            // V56: Strict rounding during animation
+            let displayStr = Math.round(currentVal).toLocaleString();
             
             let sign = isNegative ? "- " : "";
             obj.innerHTML = prefix + sign + displayStr + suffix;
@@ -560,9 +563,8 @@
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                let finalStr = "";
-                // V55: Final value also rounded
-                finalStr = Math.round(end).toLocaleString();
+                // V56: Strict rounding for final value
+                let finalStr = Math.round(end).toLocaleString();
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
         };
@@ -582,13 +584,13 @@
     }
     
     function formatCompact(num) {
-        if (num >= 100000000) return (num / 100000000).toFixed(0) + '億'; // V55: No decimal
-        if (num >= 10000) return (num / 10000).toFixed(0) + '萬'; // V55: No decimal
+        if (num >= 100000000) return (num / 100000000).toFixed(0) + '億';
+        if (num >= 10000) return (num / 10000).toFixed(0) + '萬';
         return (num / 1000).toFixed(1) + 'k';
     }
     
-    // V55: Integer Chinese Currency
     function formatChineseCurrency(num) {
+        // V56: Strict Rounding
         if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
         if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
@@ -728,14 +730,15 @@
         let totalGrossAssets = totalNetWorth + totalDebtAbs + totalInterestAbs;
         let totalLiabilities = totalDebtAbs + totalInterestAbs;
 
-        // V55: Header Logic (Round Everything)
+        // V56: Header Logic
         window.cachedTotal = totalNetWorth;
         let displayNum = totalNetWorth;
         let suffix = "";
         if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
         else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
         
-        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, "", "");
+        // Sync Time: 2000ms
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, totalNetWorth < 0, "", "");
         document.getElementById('displayUnit').innerText = suffix;
         
         drawTrendChart(historyData, totalNetWorth);
@@ -898,6 +901,21 @@
         const group = document.getElementById('crosshairGroup').outerHTML;
         svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
         
+        // V56: Sync Animation (2s)
+        const line = svg.querySelector('.trend-line');
+        const length = line.getTotalLength();
+        line.style.transition = 'none';
+        line.style.strokeDasharray = length;
+        line.style.strokeDashoffset = length;
+        line.getBoundingClientRect();
+        line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
+        line.style.strokeDashoffset = '0';
+        
+        // Labels fade in after 2s
+        setTimeout(() => {
+            document.querySelectorAll('.chart-label').forEach(l => l.classList.add('visible'));
+        }, 100); // The CSS handles the 2s delay
+
         setupInteraction(w, h, currentVal);
     }
 
@@ -977,12 +995,19 @@
         const pctNet = (data.networth / total) * 100;
         const pctDebt = (data.debt / total) * 100;
         const pctInt = (data.interest / total) * 100;
-        document.getElementById('barNetworth').style.width = pctNet + '%';
-        document.getElementById('barDebt').style.width = pctDebt + '%';
-        document.getElementById('barInterest').style.width = pctInt + '%';
+        
+        const barNet = document.getElementById('barNetworth');
+        const barDebt = document.getElementById('barDebt');
+        const barInt = document.getElementById('barInterest');
+        
+        barNet.style.width = pctNet + '%';
+        barDebt.style.width = pctDebt + '%';
+        barInt.style.width = pctInt + '%';
+
         document.getElementById('structNetWorth').innerText = formatCompact(data.networth);
         const debtRatio = ((data.debt + data.interest) / total * 100).toFixed(1);
         document.getElementById('structDebtRatio').innerText = debtRatio + '%';
+        
         const legendBox = document.getElementById('legendLeverage');
         legendBox.innerHTML = '';
         const keys = ['networth', 'debt', 'interest'];
@@ -1014,7 +1039,6 @@
         const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
         
-        // V55: No Decimals in Pie
         document.getElementById(valId).innerText = formatCompact(Math.round(total));
 
         const legendBox = document.getElementById(legendId);
