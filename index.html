@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V39 Stroke Fix)</title>
+    <title>My Net Worth (V40 App Framework)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -24,6 +24,7 @@
             --crosshair: #ffffff; 
             --up: #4cd964; 
             --down: #ff3b30; 
+            --nav-bg: rgba(28, 30, 36, 0.95); /* 導航列背景 */
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
         }
@@ -32,29 +33,50 @@
             background-color: var(--bg); color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             margin: 0; 
-            padding: calc(20px + var(--safe-top)) 20px calc(20px + var(--safe-bottom)) 20px;
+            /* V40: Padding 調整，底部留空間給 Nav Bar */
+            padding: calc(20px + var(--safe-top)) 20px calc(80px + var(--safe-bottom)) 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
         }
 
-        .container { width: 100%; max-width: 1100px; transition: max-width 0.3s ease; }
-        .config-wrapper { width: 100%; max-width: 500px; margin: 0 auto; }
+        .container { width: 100%; max-width: 1100px; }
 
+        /* --- V40: Page Management --- */
+        .page { display: none; animation: fadeIn 0.3s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- V40: Bottom Navigation Bar --- */
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: var(--nav-bg); backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: var(--safe-bottom);
+            height: calc(60px + var(--safe-bottom));
+            z-index: 100;
+        }
+        .nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            color: var(--subtext); font-size: 10px; gap: 4px; cursor: pointer;
+            height: 100%;
+        }
+        .nav-item.active { color: var(--accent); }
+        .nav-icon { font-size: 20px; }
+
+        /* --- Config Box (Moved to Settings Page) --- */
         .config-box {
             background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 20px;
             border: 1px solid rgba(255,255,255,0.05);
         }
-        
         .csv-input {
             width: 100%; background: #000; border: 1px solid #333; color: #fff;
             padding: 12px; border-radius: 10px; font-size: 14px; margin-top: 10px; outline: none;
             color: #888;
         }
         .csv-input:focus { border-color: var(--accent); color: #fff; }
-
         .toolbar { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .toolbar-left { display: flex; gap: 10px; }
-        
         .btn-base {
             cursor: pointer; font-weight: 600; font-size: 12px;
             padding: 6px 12px; border-radius: 8px; text-decoration: none;
@@ -63,68 +85,42 @@
         .btn-base:active { opacity: 0.7; }
         .btn-refresh { color: var(--accent); background: rgba(74, 144, 226, 0.15); }
         .btn-edit { color: #2ecc71; background: rgba(46, 204, 113, 0.15); }
-
         .rate-pill {
-            font-size: 13px; color: #aaa; 
-            background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 8px;
-            display: flex; align-items: center; gap: 6px;
+            font-size: 13px; color: #aaa; background: rgba(255,255,255,0.05); 
+            padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px;
         }
         .rate-val { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
-        header { text-align: center; margin-bottom: 20px; }
+        /* Header */
+        header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
         .total-title { font-size: 14px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
         .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
         .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
 
-        /* --- V39 Trend Chart & Overlay Labels --- */
+        /* Trend Chart */
         .trend-wrapper {
-            width: 100%; height: 200px;
-            margin-bottom: 30px; position: relative;
-            background: #15171c;
-            border-radius: 16px; overflow: hidden;
-            display: none;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            user-select: none; -webkit-user-select: none;
+            width: 100%; height: 200px; margin-bottom: 30px; position: relative;
+            background: #15171c; border-radius: 16px; overflow: hidden; display: none;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none;
         }
         .trend-svg { width: 100%; height: 100%; display: block; }
-        
         .trend-line { 
             fill: none; stroke: var(--trend-line); stroke-width: 2.5; 
-            stroke-linecap: round; stroke-linejoin: round;
-            /* V39: 關鍵修正！確保線條粗細不隨SVG縮放而改變 */
-            vector-effect: non-scaling-stroke;
+            stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke;
         }
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
-        
-        /* HTML Labels Layer */
-        .chart-labels-container {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none;
-        }
+        .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .chart-label {
-            position: absolute; 
-            color: var(--trend-high); 
-            font-size: 12px; font-weight: 600;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
-            white-space: nowrap;
-            transform: translateX(-50%);
+            position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%);
         }
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
-
-        /* Crosshair */
-        .crosshair-line { 
-            stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; 
-            /* V39: 十字線也加上此屬性，確保橫豎一樣粗 */
-            vector-effect: non-scaling-stroke;
-        }
+        .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
         .crosshair-dot { fill: var(--crosshair); stroke: none; r: 3; }
-        
-        /* HUD */
         .chart-hud {
-            position: absolute; top: 12px; left: 15px;
-            pointer-events: none; opacity: 0; transition: opacity 0.2s;
-            z-index: 20; display: flex; flex-direction: column; gap: 2px;
+            position: absolute; top: 12px; left: 15px; pointer-events: none; opacity: 0; 
+            transition: opacity 0.2s; z-index: 20; display: flex; flex-direction: column; gap: 2px;
         }
         .chart-hud.visible { opacity: 1; }
         .hud-date { color: var(--subtext); font-size: 11px; font-weight: 600; }
@@ -133,27 +129,28 @@
         .hud-delta.up { color: var(--up); }
         .hud-delta.down { color: var(--down); }
         .hud-delta.flat { color: var(--subtext); }
+        .trend-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10; }
 
-        .trend-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            cursor: crosshair; z-index: 10;
-        }
+        /* Structure Bar */
+        .structure-container { width: 100%; margin-bottom: 20px; padding: 0 10px; }
+        .structure-bar { width: 100%; height: 24px; background: #333; border-radius: 12px; display: flex; overflow: hidden; margin-bottom: 10px; }
+        .struct-seg { height: 100%; transition: width 0.5s ease; }
+        .struct-metrics { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext); }
+        .struct-metric-item { text-align: center; }
+        .metric-big.net-highlight { color: #3498db; }
+        .metric-big { font-size: 18px; font-weight: bold; color: #fff; display: block; }
+        .metric-label { font-size: 10px; opacity: 0.7; }
 
-        /* Charts Layout */
-        .charts-wrapper {
-            display: flex; gap: 15px; overflow-x: auto; 
-            padding-bottom: 10px; margin-bottom: 20px;
-            scroll-snap-type: x mandatory; scrollbar-width: none; 
+        /* Pie Charts Grid (V40: Modified for Analysis Page) */
+        .analysis-grid {
+            display: grid; grid-template-columns: 1fr; gap: 20px;
         }
-        .charts-wrapper::-webkit-scrollbar { display: none; }
+        @media (min-width: 600px) { .analysis-grid { grid-template-columns: 1fr 1fr; } }
 
         .chart-card {
             background: var(--card); border-radius: 20px; padding: 20px;
-            min-width: 280px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            scroll-snap-align: center;
             display: flex; flex-direction: column; align-items: center;
-            flex: 1;
         }
         .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--subtext); width: 100%; text-align: center; }
         .chart-container { width: 160px; height: 160px; border-radius: 50%; margin-bottom: 15px; background: #333; position: relative; }
@@ -166,15 +163,6 @@
         .chart-inner .inner-val { font-size: 16px; font-weight: bold; color: #fff; }
         .chart-inner .inner-label { font-size: 10px; color: #888; margin-top: 2px; }
 
-        .structure-container { width: 100%; margin-bottom: 20px; padding: 0 10px; }
-        .structure-bar { width: 100%; height: 24px; background: #333; border-radius: 12px; display: flex; overflow: hidden; margin-bottom: 10px; }
-        .struct-seg { height: 100%; transition: width 0.5s ease; }
-        .struct-metrics { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext); }
-        .struct-metric-item { text-align: center; }
-        .metric-big.net-highlight { color: #3498db; }
-        .metric-big { font-size: 18px; font-weight: bold; color: #fff; display: block; }
-        .metric-label { font-size: 10px; opacity: 0.7; }
-
         .legend-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
         .legend-item {
             display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px;
@@ -182,7 +170,9 @@
         }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
+        /* Asset List */
         .asset-list-container { display: grid; gap: 15px; }
+        @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
         .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); transition: all 0.3s ease; }
         .category-group.open { box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
@@ -211,65 +201,42 @@
         .loading-text { color: #f39c12; text-align: center; margin-top: 20px; display: none;}
         .error-text { color: #e74c3c; background: rgba(231, 76, 60, 0.1); padding: 10px; border-radius: 8px; margin-top: 10px; font-size: 12px; display: none; line-height: 1.5;}
         
-        @media (min-width: 768px) {
-            .container { padding: 40px; }
-            .charts-wrapper { overflow-x: visible; flex-wrap: wrap; justify-content: center; gap: 20px; }
-            .chart-card { min-width: 220px; flex: 1 1 200px; max-width: 300px; }
-            .asset-list-container { grid-template-columns: 1fr 1fr; }
-        }
+        .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; padding-left: 5px; border-left: 3px solid var(--accent); line-height: 1; margin-top: 10px;}
     </style>
 </head>
 <body>
 
 <div class="container">
-    <div class="config-wrapper">
-        <div class="config-box">
-            <div class="toolbar">
-                <div class="toolbar-left">
-                    <a href="https://docs.google.com/spreadsheets/d/1HrG-LV9lYJ0c4OCBFmqz_gGGyIdWHHK92eNSyCPOCuU/edit?usp=drivesdk" target="_blank" class="btn-base btn-edit">📝 編輯</a>
-                    <span class="btn-base btn-refresh" onclick="fetchData()">🔄 重整</span>
-                </div>
-                <div class="rate-pill">
-                    <span>🇺🇸</span>
-                    <span id="rateDisplay" class="rate-val">32.5</span>
-                </div>
+    
+    <div id="page-home" class="page active">
+        <header>
+            <div class="total-title">NET WORTH</div>
+            <div class="total-amount"><span class="currency-tag">NT$</span> <span id="displayTotal">0</span></div>
+        </header>
+
+        <div id="trendChartWrapper" class="trend-wrapper">
+            <div id="chartHud" class="chart-hud">
+                <div id="hudDate" class="hud-date">DATE</div>
+                <div id="hudVal" class="hud-val">VALUE</div>
+                <div id="hudDelta" class="hud-delta">0% to Today</div>
             </div>
-            <input type="text" id="csvUrl" class="csv-input" placeholder="Google Sheet CSV 連結..." onchange="saveUrl()">
-            <div id="errorMsg" class="error-text"></div>
+            <svg id="trendSvg" class="trend-svg" viewBox="0 0 1000 200" preserveAspectRatio="none">
+                <defs>
+                    <linearGradient id="trendGradient" x1="0" x2="0" y1="0" y2="1">
+                        <stop offset="0%" stop-color="#64869b" stop-opacity="0.3"/>
+                        <stop offset="100%" stop-color="#64869b" stop-opacity="0"/>
+                    </linearGradient>
+                </defs>
+                <g id="crosshairGroup" style="opacity: 0;">
+                    <line id="crosshairX" y1="0" y2="200" class="crosshair-line" />
+                    <line id="crosshairY" x1="0" x2="1000" class="crosshair-line" />
+                    <circle id="crosshairDot" r="3" class="crosshair-dot" />
+                </g>
+            </svg>
+            <div id="chartLabels" class="chart-labels-container"></div>
+            <div id="trendOverlay" class="trend-overlay"></div>
         </div>
-    </div>
 
-    <header>
-        <div class="total-title">NET WORTH</div>
-        <div class="total-amount"><span class="currency-tag">NT$</span> <span id="displayTotal">0</span></div>
-    </header>
-
-    <div id="trendChartWrapper" class="trend-wrapper">
-        <div id="chartHud" class="chart-hud">
-            <div id="hudDate" class="hud-date">DATE</div>
-            <div id="hudVal" class="hud-val">VALUE</div>
-            <div id="hudDelta" class="hud-delta">0% to Today</div>
-        </div>
-
-        <svg id="trendSvg" class="trend-svg" viewBox="0 0 1000 200" preserveAspectRatio="none">
-            <defs>
-                <linearGradient id="trendGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stop-color="#64869b" stop-opacity="0.3"/>
-                    <stop offset="100%" stop-color="#64869b" stop-opacity="0"/>
-                </linearGradient>
-            </defs>
-            <g id="crosshairGroup" style="opacity: 0;">
-                <line id="crosshairX" y1="0" y2="200" class="crosshair-line" />
-                <line id="crosshairY" x1="0" x2="1000" class="crosshair-line" />
-                <circle id="crosshairDot" r="3" class="crosshair-dot" />
-            </g>
-        </svg>
-        
-        <div id="chartLabels" class="chart-labels-container"></div>
-        <div id="trendOverlay" class="trend-overlay"></div>
-    </div>
-
-    <div class="charts-wrapper">
         <div class="chart-card">
             <div class="chart-title">資金結構 (Structure)</div>
             <div class="structure-container">
@@ -291,30 +258,83 @@
             </div>
             <div id="legendLeverage" class="legend-box"></div>
         </div>
-        <div class="chart-card">
-            <div class="chart-title">負債分佈 (Liabilities)</div>
-            <div class="chart-container" id="chartDebt"><div class="chart-inner"><div class="inner-val" id="valDebt">0</div><div class="inner-label">總負債</div></div></div>
-            <div id="legendDebt" class="legend-box"></div>
+    </div>
+
+    <div id="page-analysis" class="page">
+        <div class="section-title">資產分析</div>
+        <div class="analysis-grid">
+            <div class="chart-card">
+                <div class="chart-title">資產配置 (Assets)</div>
+                <div class="chart-container" id="chartCategory"><div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div></div>
+                <div id="legendCategory" class="legend-box"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">負債分佈 (Liabilities)</div>
+                <div class="chart-container" id="chartDebt"><div class="chart-inner"><div class="inner-val" id="valDebt">0</div><div class="inner-label">總負債</div></div></div>
+                <div id="legendDebt" class="legend-box"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">流動性 (Liquidity)</div>
+                <div class="chart-container" id="chartLiquidity"><div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div></div>
+                <div id="legendLiquidity" class="legend-box"></div>
+            </div>
+            <div class="chart-card">
+                <div class="chart-title">幣別曝險 (Currency)</div>
+                <div class="chart-container" id="chartCurrency"><div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div></div>
+                <div id="legendCurrency" class="legend-box"></div>
+            </div>
         </div>
-        <div class="chart-card">
-            <div class="chart-title">資產配置 (Assets)</div>
-            <div class="chart-container" id="chartCategory"><div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div></div>
-            <div id="legendCategory" class="legend-box"></div>
-        </div>
-        <div class="chart-card">
-            <div class="chart-title">流動性 (Liquidity)</div>
-            <div class="chart-container" id="chartLiquidity"><div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div></div>
-            <div id="legendLiquidity" class="legend-box"></div>
-        </div>
-        <div class="chart-card">
-            <div class="chart-title">幣別曝險 (Currency)</div>
-            <div class="chart-container" id="chartCurrency"><div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div></div>
-            <div id="legendCurrency" class="legend-box"></div>
+    </div>
+
+    <div id="page-list" class="page">
+        <div class="section-title">資產清單</div>
+        <div id="assetListContainer" class="asset-list-container"></div>
+    </div>
+
+    <div id="page-settings" class="page">
+        <div class="section-title">設定</div>
+        <div class="config-wrapper">
+            <div class="config-box">
+                <div class="toolbar">
+                    <div class="toolbar-left">
+                        <a href="https://docs.google.com/spreadsheets/d/1HrG-LV9lYJ0c4OCBFmqz_gGGyIdWHHK92eNSyCPOCuU/edit?usp=drivesdk" target="_blank" class="btn-base btn-edit">📝 編輯數據</a>
+                        <span class="btn-base btn-refresh" onclick="fetchData()">🔄 立即重整</span>
+                    </div>
+                    <div class="rate-pill">
+                        <span>🇺🇸</span>
+                        <span id="rateDisplay" class="rate-val">32.5</span>
+                    </div>
+                </div>
+                <input type="text" id="csvUrl" class="csv-input" placeholder="Google Sheet CSV 連結..." onchange="saveUrl()">
+                <div id="errorMsg" class="error-text"></div>
+            </div>
+            <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
+                Vibe Coding V40.0<br>Personal Asset Dashboard
+            </div>
         </div>
     </div>
 
     <div id="loading" class="loading-text">運算中...</div>
-    <div id="assetListContainer" class="asset-list-container"></div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="switchPage('home', this)">
+            <div class="nav-icon">🏠</div>
+            <span>總覽</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('analysis', this)">
+            <div class="nav-icon">📊</div>
+            <span>分析</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('list', this)">
+            <div class="nav-icon">📝</div>
+            <span>清單</span>
+        </div>
+        <div class="nav-item" onclick="switchPage('settings', this)">
+            <div class="nav-icon">⚙️</div>
+            <span>設定</span>
+        </div>
+    </nav>
+
 </div>
 
 <script>
@@ -335,6 +355,18 @@
     let currentRate = parseFloat(localStorage.getItem('vibeUsdRate')) || 32.5;
     document.getElementById('rateDisplay').innerText = currentRate;
     if(document.getElementById('csvUrl').value) fetchData();
+
+    // V40: Page Switching Logic
+    function switchPage(pageId, navEl) {
+        // Hide all pages
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        // Show target page
+        document.getElementById('page-' + pageId).classList.add('active');
+        
+        // Update nav active state
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        navEl.classList.add('active');
+    }
 
     function saveUrl() { localStorage.setItem('vibeSheetUrl', document.getElementById('csvUrl').value); fetchData(); }
     
@@ -367,6 +399,8 @@
 
         document.getElementById('loading').style.display = 'block';
         document.getElementById('errorMsg').style.display = 'none';
+        
+        // Clear List
         document.getElementById('assetListContainer').innerHTML = '';
 
         const cacheBuster = encodeURIComponent(url + '&t=' + Date.now());
@@ -482,7 +516,6 @@
         document.getElementById('displayTotal').innerText = Math.round(totalNetWorth).toLocaleString();
         
         drawTrendChart(historyData, totalNetWorth);
-        
         drawStructureBar(leverage, totalGrossAssets);
         drawPie('chartDebt', 'legendDebt', 'valDebt', debtBreakdown, totalLiabilities, ['debt', 'interest']);
         drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond']);
