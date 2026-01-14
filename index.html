@@ -7,17 +7,20 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="My Assets">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%231c1e24%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V43 Icons)</title>
+    <title>My Net Worth (V48 Pie Anim)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         :root {
-            --bg: #0f1115;
-            --card: #1c1e24;
+            --bg: #000000;
+            --card: #121212;
+            --card-hover: #1a1a1a;
+            --nav-bg: #000000;
+            
             --text: #ffffff;
-            --subtext: #8b9bb4;
+            --subtext: #888888;
             --accent: #5c85b3;
             
             --trend-line: #64869b; 
@@ -26,13 +29,24 @@
             --up: #569C78; 
             --down: #A6444D;
             
-            --nav-bg: #15171c;
-            --nav-inactive: #5a5e66;
-            --nav-active: #d1d5db;
+            --nav-inactive: #444444;
+            --nav-hover: #888888;
+            --nav-active: #ffffff;
+            
             --safe-top: env(safe-area-inset-top);
             --safe-bottom: env(safe-area-inset-bottom);
+            
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         
+        /* V48: Register Property for smooth gradient animation */
+        @property --pie-p {
+            syntax: '<percentage>';
+            inherits: false;
+            initial-value: 0%;
+        }
+
         body {
             background-color: var(--bg); color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -40,19 +54,31 @@
             padding: calc(20px + var(--safe-top)) 20px calc(80px + var(--safe-bottom)) 20px;
             display: flex; flex-direction: column; align-items: center;
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .container { width: 100%; max-width: 1100px; }
+        .container { width: 100%; max-width: 1100px; position: relative; }
 
-        .page { display: none; animation: fadeIn 0.3s ease; }
-        .page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Page Transitions */
+        .page { 
+            display: none; opacity: 0;
+            transform: translateY(20px) scale(0.98);
+            transform-origin: center top;
+        }
+        .page.active { 
+            display: block; 
+            animation: pageEnter 0.5s var(--ease-out-expo) forwards;
+        }
+        @keyframes pageEnter { 
+            from { opacity: 0; transform: translateY(20px) scale(0.98); } 
+            to { opacity: 1; transform: translateY(0) scale(1); } 
+        }
 
         /* Navigation Bar */
         .nav-bar {
             position: fixed; bottom: 0; left: 0; width: 100%;
             background: var(--nav-bg); 
-            box-shadow: 0 -10px 40px rgba(0,0,0,0.5);
+            border-top: 1px solid #1a1a1a;
             display: flex; justify-content: space-around; align-items: center;
             padding-bottom: var(--safe-bottom);
             height: calc(60px + var(--safe-bottom));
@@ -62,30 +88,42 @@
             flex: 1; height: 100%;
             display: flex; justify-content: center; align-items: center;
             cursor: pointer; position: relative;
+            transition: transform 0.2s var(--ease-out-expo);
         }
-        .nav-icon svg { width: 24px; height: 24px; fill: var(--nav-inactive); transition: fill 0.3s ease, transform 0.2s ease; }
-        .nav-item.active .nav-icon svg { fill: var(--nav-active); transform: scale(1.1); }
-        
+        .nav-item:active { transform: scale(0.9); }
+        .nav-item:hover .nav-icon svg { fill: var(--nav-hover); opacity: 1; transform: translateY(-3px); filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
+        .nav-item.active .nav-icon svg { fill: var(--nav-active); opacity: 1; transform: translateY(-5px) scale(1.15); filter: drop-shadow(0 0 8px rgba(255,255,255,0.6)); }
+        .nav-item.active::after {
+            content: ''; position: absolute; bottom: 12px;
+            width: 4px; height: 4px; border-radius: 50%;
+            background-color: var(--nav-active);
+            box-shadow: 0 0 6px var(--nav-active);
+            animation: dotPop 0.4s var(--ease-elastic);
+        }
+        @keyframes dotPop { from { transform: scale(0); } to { transform: scale(1); } }
+        .nav-icon svg { width: 24px; height: 24px; fill: var(--nav-inactive); transition: all 0.4s var(--ease-elastic); opacity: 0.6; }
+
         /* Config Box */
-        .config-box { background: rgba(255,255,255,0.05); padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .csv-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 10px; font-size: 14px; margin-top: 10px; outline: none; color: #888; }
+        .config-box { background: #121212; padding: 20px; border-radius: 16px; margin-bottom: 20px; border: 1px solid #222; }
+        .csv-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 12px; border-radius: 10px; font-size: 14px; margin-top: 10px; outline: none; color: #888; transition: border-color 0.3s; }
         .csv-input:focus { border-color: var(--accent); color: #fff; }
         .toolbar { display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .toolbar-left { display: flex; gap: 10px; }
-        .btn-base { cursor: pointer; font-weight: 600; font-size: 12px; padding: 6px 12px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; transition: opacity 0.2s; }
-        .btn-base:active { opacity: 0.7; }
+        .btn-base { cursor: pointer; font-weight: 600; font-size: 12px; padding: 6px 12px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; transition: all 0.2s ease; }
+        .btn-base:hover { transform: translateY(-1px); filter: brightness(1.2); }
+        .btn-base:active { transform: translateY(1px); filter: brightness(0.9); }
         .btn-refresh { color: var(--accent); background: rgba(92, 133, 179, 0.15); }
         .btn-edit { color: #569C78; background: rgba(86, 156, 120, 0.15); }
-        .rate-pill { font-size: 13px; color: #aaa; background: rgba(255,255,255,0.05); padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
+        .rate-pill { font-size: 13px; color: #aaa; background: #222; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px; }
         .rate-val { color: #fff; font-weight: bold; font-family: monospace; font-size: 14px; }
 
         header { text-align: center; margin-bottom: 20px; margin-top: 10px; }
-        .total-title { font-size: 14px; color: #888; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
+        .total-title { font-size: 14px; color: #666; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 5px; }
         .total-amount { font-size: 56px; font-weight: 800; margin: 0; line-height: 1; text-shadow: 0 0 20px rgba(255,255,255,0.1); }
         .currency-tag { font-size: 24px; color: var(--subtext); margin-right: 5px;}
 
         /* Trend Chart */
-        .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #15171c; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; }
+        .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ease-out-expo); }
         .trend-svg { width: 100%; height: 100%; display: block; }
         .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0.6; }
@@ -94,7 +132,7 @@
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
         .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
-        .crosshair-dot { fill: var(--crosshair); stroke: none; r: 3; }
+        .crosshair-dot-html { position: absolute; width: 8px; height: 8px; background-color: var(--crosshair); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity 0.1s; z-index: 15; box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.5); }
         .chart-hud { position: absolute; top: 12px; left: 15px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; display: flex; flex-direction: column; gap: 2px; }
         .chart-hud.visible { opacity: 1; }
         .hud-date { color: var(--subtext); font-size: 11px; font-weight: 600; }
@@ -105,8 +143,9 @@
         .hud-delta.flat { color: var(--subtext); }
         .trend-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; z-index: 10; }
 
+        /* Structure Bar */
         .structure-container { width: 100%; margin-bottom: 20px; padding: 0 10px; }
-        .structure-bar { width: 100%; height: 24px; background: #333; border-radius: 12px; display: flex; overflow: hidden; margin-bottom: 10px; }
+        .structure-bar { width: 100%; height: 24px; background: #222; border-radius: 12px; display: flex; overflow: hidden; margin-bottom: 10px; }
         .struct-seg { height: 100%; transition: width 0.5s ease; }
         .struct-metrics { display: flex; justify-content: space-between; width: 100%; font-size: 12px; color: var(--subtext); }
         .struct-metric-item { text-align: center; }
@@ -114,53 +153,70 @@
         .metric-big { font-size: 18px; font-weight: bold; color: #fff; display: block; }
         .metric-label { font-size: 10px; opacity: 0.7; }
 
+        /* Analysis Grid & Pie Charts */
         .analysis-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
         @media (min-width: 600px) { .analysis-grid { grid-template-columns: 1fr 1fr; } }
 
-        .chart-card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; align-items: center; }
+        .chart-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #1a1a1a; display: flex; flex-direction: column; align-items: center; transition: transform 0.3s var(--ease-out-expo), border-color 0.3s; }
+        .chart-card:hover { transform: translateY(-3px); border-color: #333; }
         .chart-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; color: var(--subtext); width: 100%; text-align: center; }
-        .chart-container { width: 160px; height: 160px; border-radius: 50%; margin-bottom: 15px; background: #333; position: relative; }
-        .chart-inner { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 110px; height: 110px; background-color: var(--card); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; color: var(--subtext); font-size: 12px; text-align: center; }
+        
+        /* V48: Modified Pie Chart Structure */
+        .chart-container { width: 160px; height: 160px; border-radius: 50%; margin-bottom: 15px; background: #222; position: relative; }
+        
+        /* The colored ring */
+        .pie-ring {
+            width: 100%; height: 100%; border-radius: 50%;
+            /* V48: Mask for animation */
+            --pie-p: 0%;
+            mask: conic-gradient(#000 var(--pie-p), transparent var(--pie-p));
+            -webkit-mask: conic-gradient(#000 var(--pie-p), transparent var(--pie-p));
+        }
+        /* The Animation Class */
+        .pie-anim .pie-ring {
+            animation: pieReveal 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes pieReveal { from { --pie-p: 0%; } to { --pie-p: 100%; } }
+
+        /* The center text (stays on top) */
+        .chart-inner { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); 
+            width: 110px; height: 110px; background-color: var(--card); border-radius: 50%; 
+            display: flex; align-items: center; justify-content: center; flex-direction: column; 
+            color: var(--subtext); font-size: 12px; text-align: center; 
+            z-index: 2; /* Ensure text is above the ring */
+        }
         .chart-inner .inner-val { font-size: 16px; font-weight: bold; color: #fff; }
         .chart-inner .inner-label { font-size: 10px; color: #888; margin-top: 2px; }
 
         .legend-box { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; }
-        .legend-item { display: flex; align-items: center; background: rgba(255,255,255,0.05); padding: 4px 10px; border-radius: 20px; font-size: 11px; border: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }
+        .legend-item { display: flex; align-items: center; background: #222; padding: 4px 10px; border-radius: 20px; font-size: 11px; border: 1px solid #333; white-space: nowrap; }
         .legend-dot { width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
         .asset-list-container { display: grid; gap: 15px; }
         @media (min-width: 768px) { .asset-list-container { grid-template-columns: 1fr 1fr; } }
         
-        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); transition: all 0.3s ease; }
-        .category-group.open { box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
-        .category-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background-color: var(--card); min-height: 44px; }
+        .category-group { border-radius: 16px; overflow: hidden; background-color: var(--card); border: 1px solid #1a1a1a; transition: all 0.3s var(--ease-out-expo); }
+        .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
+        .category-header { padding: 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; min-height: 44px; }
         
-        /* --- V43: Icon Area Styling --- */
         .cat-title-area { display: flex; align-items: center; gap: 12px; }
-        
-        /* The specific SVG icon container */
-        .cat-icon-box {
-            width: 34px; height: 34px;
-            border-radius: 10px;
-            display: flex; justify-content: center; align-items: center;
-            /* 背景色會由 JS 動態填入 (帶透明度) */
-        }
-        .cat-icon-box svg {
-            width: 18px; height: 18px;
-            /* 顏色會由 JS 動態填入 */
-        }
-
+        .cat-icon-box { width: 34px; height: 34px; border-radius: 10px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); }
+        .category-group:hover .cat-icon-box { transform: scale(1.1); }
+        .cat-icon-box svg { width: 18px; height: 18px; }
         .cat-name { font-size: 16px; font-weight: bold; color: #fff; }
-        .cat-count { font-size: 12px; color: var(--subtext); background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 10px; }
+        .cat-count { font-size: 12px; color: var(--subtext); background: #222; padding: 2px 8px; border-radius: 10px; }
         .cat-total-area { text-align: right; }
         .cat-amount { font-size: 16px; font-weight: bold; color: #fff; display: block; }
         .cat-pct { font-size: 12px; color: var(--subtext); }
         .arrow-icon { transition: transform 0.3s ease; opacity: 0.5; margin-left: 10px; font-size: 12px;}
         .category-group.open .arrow-icon { transform: rotate(180deg); opacity: 1; }
-        .category-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; background-color: rgba(0,0,0,0.2); }
+        .category-content { max-height: 0; overflow: hidden; transition: max-height 0.4s var(--ease-out-expo); background-color: #000; }
         .category-group.open .category-content { max-height: 2000px; }
 
-        .asset-item { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .asset-item { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; transition: background 0.2s; }
+        .asset-item:hover { background: #0a0a0a; }
         .asset-item:last-child { border-bottom: none; }
         .asset-info h4 { margin: 0 0 4px 0; font-size: 15px; color: #ddd; }
         .asset-info p { margin: 0; font-size: 12px; color: var(--subtext); }
@@ -200,10 +256,10 @@
                 <g id="crosshairGroup" style="opacity: 0;">
                     <line id="crosshairX" y1="0" y2="200" class="crosshair-line" />
                     <line id="crosshairY" x1="0" x2="1000" class="crosshair-line" />
-                    <circle id="crosshairDot" r="3" class="crosshair-dot" />
                 </g>
             </svg>
             <div id="chartLabels" class="chart-labels-container"></div>
+            <div id="crosshairDotHtml" class="crosshair-dot-html"></div>
             <div id="trendOverlay" class="trend-overlay"></div>
         </div>
 
@@ -235,22 +291,34 @@
         <div class="analysis-grid">
             <div class="chart-card">
                 <div class="chart-title">資產配置 (Assets)</div>
-                <div class="chart-container" id="chartCategory"><div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div></div>
+                <div class="chart-container">
+                    <div id="chartCategory" class="pie-ring"></div>
+                    <div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div>
+                </div>
                 <div id="legendCategory" class="legend-box"></div>
             </div>
             <div class="chart-card">
                 <div class="chart-title">負債分佈 (Liabilities)</div>
-                <div class="chart-container" id="chartDebt"><div class="chart-inner"><div class="inner-val" id="valDebt">0</div><div class="inner-label">總負債</div></div></div>
+                <div class="chart-container">
+                    <div id="chartDebt" class="pie-ring"></div>
+                    <div class="chart-inner"><div class="inner-val" id="valDebt">0</div><div class="inner-label">總負債</div></div>
+                </div>
                 <div id="legendDebt" class="legend-box"></div>
             </div>
             <div class="chart-card">
                 <div class="chart-title">流動性 (Liquidity)</div>
-                <div class="chart-container" id="chartLiquidity"><div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div></div>
+                <div class="chart-container">
+                    <div id="chartLiquidity" class="pie-ring"></div>
+                    <div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div>
+                </div>
                 <div id="legendLiquidity" class="legend-box"></div>
             </div>
             <div class="chart-card">
                 <div class="chart-title">幣別曝險 (Currency)</div>
-                <div class="chart-container" id="chartCurrency"><div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div></div>
+                <div class="chart-container">
+                    <div id="chartCurrency" class="pie-ring"></div>
+                    <div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div>
+                </div>
                 <div id="legendCurrency" class="legend-box"></div>
             </div>
         </div>
@@ -279,7 +347,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V43.0<br>Visual Icons
+                Vibe Coding V48.0<br>Pie Animation
             </div>
         </div>
     </div>
@@ -316,17 +384,16 @@
         liquid: '流動', fixed: '固定', usd: '美元', twd: '台幣', networth: '淨值'
     };
 
-    // V43: SVG Path Definitions
     const categoryIcons = {
-        realestate: '<path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>', // House
-        car: '<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>', // Car
-        cash: '<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h1c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-1zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>', // Wallet
-        us_stock: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>', // Globe
-        tw_stock: '<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>', // Chart Up
-        bond: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>', // Document
-        debt: '<path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>', // Credit Card
-        interest: '<path d="M13.5 17c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-3-6c.83 0 1.5-.67 1.5-1.5S11.33 8 10.5 8 9 8.67 9 9.5 9.67 11 10.5 11zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>', // Percent/Coin like
-        default: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>' // Info
+        realestate: '<path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>',
+        car: '<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>',
+        cash: '<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h1c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-1zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
+        us_stock: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>',
+        tw_stock: '<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>',
+        bond: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
+        debt: '<path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/>',
+        interest: '<path d="M13.5 17c.83 0 1.5-.67 1.5-1.5s-.67-1.5-1.5-1.5-1.5.67-1.5 1.5.67 1.5 1.5 1.5zm-3-6c.83 0 1.5-.67 1.5-1.5S11.33 8 10.5 8 9 8.67 9 9.5 9.67 11 10.5 11zM19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/>',
+        default: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>'
     };
     
     document.getElementById('csvUrl').value = localStorage.getItem('vibeSheetUrl') || '';
@@ -339,6 +406,15 @@
         document.getElementById('page-' + pageId).classList.add('active');
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         navEl.classList.add('active');
+        
+        // V48: Replay Pie Animation
+        if(pageId === 'analysis') {
+            document.querySelectorAll('.chart-card').forEach(card => {
+                card.classList.remove('pie-anim');
+                void card.offsetWidth; // Trigger reflow
+                card.classList.add('pie-anim');
+            });
+        }
     }
 
     function saveUrl() { localStorage.setItem('vibeSheetUrl', document.getElementById('csvUrl').value); fetchData(); }
@@ -515,13 +591,8 @@
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'category-group';
                 
-                // V43: Dynamic Icon Logic
                 let iconPath = categoryIcons[key] || categoryIcons['default'];
-                // Special mapping for debt/stock to more specific icons if needed, but generic works
                 if (key === 'debt') iconPath = categoryIcons['debt'];
-                
-                // Color Logic for Icon Box
-                // Use a low opacity background of the same color
                 let iconColor = colors[key];
                 
                 groupDiv.innerHTML = `
@@ -564,7 +635,6 @@
         });
     }
 
-    // Helper to create transparent background from hex color
     function hexToRgba(hex, alpha) {
         let c;
         if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
@@ -575,7 +645,7 @@
             c= '0x'+c.join('');
             return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
         }
-        return 'rgba(255,255,255,0.1)'; // Fallback
+        return 'rgba(255,255,255,0.1)';
     }
 
     let chartPoints = []; 
@@ -645,7 +715,7 @@
         const crosshairGroup = document.getElementById('crosshairGroup');
         const crossX = document.getElementById('crosshairX');
         const crossY = document.getElementById('crosshairY');
-        const crossDot = document.getElementById('crosshairDot');
+        const crossDotHtml = document.getElementById('crosshairDotHtml');
         
         const hud = document.getElementById('chartHud');
         const hudDate = document.getElementById('hudDate');
@@ -673,7 +743,10 @@
             crosshairGroup.style.opacity = 1;
             crossX.setAttribute('x1', nearest.x); crossX.setAttribute('x2', nearest.x);
             crossY.setAttribute('y1', nearest.y); crossY.setAttribute('y2', nearest.y);
-            crossDot.setAttribute('cx', nearest.x); crossDot.setAttribute('cy', nearest.y);
+            
+            crossDotHtml.style.opacity = 1;
+            crossDotHtml.style.left = (nearest.x / 10) + '%';
+            crossDotHtml.style.top = nearest.y + 'px';
 
             hud.classList.add('visible');
             hudDate.innerText = nearest.date;
@@ -695,6 +768,7 @@
 
         function handleEnd() {
             crosshairGroup.style.opacity = 0;
+            crossDotHtml.style.opacity = 0;
             hud.classList.remove('visible');
         }
 
@@ -745,8 +819,10 @@
                 cur += deg;
             }
         }
-        document.getElementById(chartId).style.background = `conic-gradient(${grad.join(', ')})`;
-        document.getElementById(valId).innerText = formatCompact(total);
+        // V48: Apply gradient to the ring element instead of the container
+        const ring = document.getElementById(chartId); // This ID is now on the ring div
+        if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
+        
         const legendBox = document.getElementById(legendId);
         legendBox.innerHTML = '';
         for (let type of keysOrder) {
