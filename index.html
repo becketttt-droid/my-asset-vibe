@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V66 Safe Mode)</title>
+    <title>My Net Worth (V67 Stable)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -151,10 +151,11 @@
         .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
         .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-        .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0; transition: opacity 1s ease 2s; /* V66: Match line draw time */ }
+        /* V67: Area fade in delay 2s to match line drawing */
+        .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0; transition: opacity 1s ease 2s; }
         .trend-area.visible { opacity: 0.6; }
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 2s; /* Sync with line */ }
+        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 2s; }
         .chart-label.visible { opacity: 1; }
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
@@ -332,44 +333,23 @@
 
     <div id="page-analysis" class="page">
         <div class="section-title">深度洞察</div>
-        
         <div class="analysis-extended">
             <div class="chart-card" style="align-items:flex-start;">
                 <div class="chart-title" style="text-align:left;">財務健檢 (Health)</div>
                 <div style="width:100%;">
-                    <div class="kpi-row">
-                        <div><div class="kpi-label">淨流動資產 (Net Liquid)</div><div class="kpi-sub">變現能力</div></div>
-                        <div class="kpi-value" id="kpiNetLiquid">0</div>
-                    </div>
-                    <div class="kpi-row">
-                        <div><div class="kpi-label">流動償債率 (Solvency)</div><div class="kpi-sub">流動資產 ÷ 總負債</div></div>
-                        <div class="kpi-value" id="kpiSolvency">0x</div>
-                    </div>
-                    <div class="kpi-row">
-                        <div><div class="kpi-label">總負債 (Total Debt)</div><div class="kpi-sub">槓桿總額</div></div>
-                        <div class="kpi-value val-bad" id="kpiTotalDebt">0</div>
-                    </div>
+                    <div class="kpi-row"><div><div class="kpi-label">淨流動資產 (Net Liquid)</div><div class="kpi-sub">變現能力</div></div><div class="kpi-value" id="kpiNetLiquid">0</div></div>
+                    <div class="kpi-row"><div><div class="kpi-label">流動償債率 (Solvency)</div><div class="kpi-sub">流動資產 ÷ 總負債</div></div><div class="kpi-value" id="kpiSolvency">0x</div></div>
+                    <div class="kpi-row"><div><div class="kpi-label">總負債 (Total Debt)</div><div class="kpi-sub">槓桿總額</div></div><div class="kpi-value val-bad" id="kpiTotalDebt">0</div></div>
                 </div>
             </div>
-
             <div class="chart-card" style="align-items:flex-start;">
                 <div class="chart-title" style="text-align:left;">成長動能 (Growth)</div>
                 <div style="width:100%;">
-                    <div class="kpi-row">
-                        <div><div class="kpi-label">月環比 (MoM)</div><div class="kpi-sub">vs 上個月</div></div>
-                        <div class="kpi-value" id="kpiMoM">0%</div>
-                    </div>
-                    <div class="kpi-row">
-                        <div><div class="kpi-label">今年以來 (YTD)</div><div class="kpi-sub">vs 1月1日</div></div>
-                        <div class="kpi-value" id="kpiYTD">0%</div>
-                    </div>
-                    <div class="kpi-row">
-                        <div><div class="kpi-label">距離高點 (vs ATH)</div><div class="kpi-sub">資產最高紀錄</div></div>
-                        <div class="kpi-value" id="kpiATH">0%</div>
-                    </div>
+                    <div class="kpi-row"><div><div class="kpi-label">月環比 (MoM)</div><div class="kpi-sub">vs 上個月</div></div><div class="kpi-value" id="kpiMoM">0%</div></div>
+                    <div class="kpi-row"><div><div class="kpi-label">今年以來 (YTD)</div><div class="kpi-sub">vs 1月1日</div></div><div class="kpi-value" id="kpiYTD">0%</div></div>
+                    <div class="kpi-row"><div><div class="kpi-label">距離高點 (vs ATH)</div><div class="kpi-sub">資產最高紀錄</div></div><div class="kpi-value" id="kpiATH">0%</div></div>
                 </div>
             </div>
-
             <div class="chart-card" style="align-items:flex-start;">
                 <div class="chart-title" style="text-align:left;">風險屬性 (Risk Profile)</div>
                 <div style="width:100%; margin-top:10px;">
@@ -385,7 +365,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="chart-card" style="align-items:flex-start;">
                 <div class="chart-title" style="text-align:left;">前五大持倉 (Top 5)</div>
                 <div id="topHoldingsList" style="width:100%;"></div>
@@ -394,26 +373,10 @@
 
         <div class="section-title">資產分佈</div>
         <div class="analysis-grid">
-            <div class="chart-card">
-                <div class="chart-title">資產配置 (Assets)</div>
-                <div class="chart-container"><div id="chartCategory" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div></div>
-                <div id="legendCategory" class="legend-box"></div>
-            </div>
-            <div class="chart-card">
-                <div class="chart-title">負債分佈 (Liabilities)</div>
-                <div class="chart-container"><div id="chartDebt" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valDebt">0</div><div class="inner-label">總負債</div></div></div>
-                <div id="legendDebt" class="legend-box"></div>
-            </div>
-            <div class="chart-card">
-                <div class="chart-title">流動性 (Liquidity)</div>
-                <div class="chart-container"><div id="chartLiquidity" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div></div>
-                <div id="legendLiquidity" class="legend-box"></div>
-            </div>
-            <div class="chart-card">
-                <div class="chart-title">幣別曝險 (Currency)</div>
-                <div class="chart-container"><div id="chartCurrency" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div></div>
-                <div id="legendCurrency" class="legend-box"></div>
-            </div>
+            <div class="chart-card"><div class="chart-title">資產配置 (Assets)</div><div class="chart-container"><div id="chartCategory" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valCategory">0</div><div class="inner-label">總資產</div></div></div><div id="legendCategory" class="legend-box"></div></div>
+            <div class="chart-card"><div class="chart-title">負債分佈 (Liabilities)</div><div class="chart-container"><div id="chartDebt" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valDebt">0</div><div class="inner-label">總負債</div></div></div><div id="legendDebt" class="legend-box"></div></div>
+            <div class="chart-card"><div class="chart-title">流動性 (Liquidity)</div><div class="chart-container"><div id="chartLiquidity" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valLiquidity">0</div><div class="inner-label">總流動</div></div></div><div id="legendLiquidity" class="legend-box"></div></div>
+            <div class="chart-card"><div class="chart-title">幣別曝險 (Currency)</div><div class="chart-container"><div id="chartCurrency" class="pie-ring"></div><div class="chart-inner"><div class="inner-val" id="valCurrency">0</div><div class="inner-label">總曝險</div></div></div><div id="legendCurrency" class="legend-box"></div></div>
         </div>
     </div>
 
@@ -440,26 +403,17 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V66.0<br>Safe & Sync
+                Vibe Coding V67.0<br>Stable & Integer
             </div>
         </div>
     </div>
 
     <nav class="nav-bar">
-        <div class="nav-item active" onclick="switchPage('home', this)">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div>
-        </div>
-        <div class="nav-item" onclick="switchPage('analysis', this)">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M11 2v20c-5.07-.5-9-4.79-9-10s4.07-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"/></svg></div>
-        </div>
-        <div class="nav-item" onclick="switchPage('list', this)">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></div>
-        </div>
-        <div class="nav-item" onclick="switchPage('settings', this)">
-            <div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
-        </div>
+        <div class="nav-item active" onclick="switchPage('home', this)"><div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg></div></div>
+        <div class="nav-item" onclick="switchPage('analysis', this)"><div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M11 2v20c-5.07-.5-9-4.79-9-10s4.07-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"/></svg></div></div>
+        <div class="nav-item" onclick="switchPage('list', this)"><div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></svg></div></div>
+        <div class="nav-item" onclick="switchPage('settings', this)"><div class="nav-icon"><svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div></div>
     </nav>
-
 </div>
 
 <script>
@@ -492,7 +446,6 @@
     document.getElementById('rateDisplay').innerText = currentRate;
     if(document.getElementById('csvUrl').value) fetchData();
 
-    // Swipe Logic
     const pages = ['home', 'analysis', 'list', 'settings'];
     const container = document.getElementById('mainContainer');
     let startX = 0;
@@ -519,119 +472,59 @@
         const targetPage = document.getElementById('page-' + pageId);
         const allPages = document.querySelectorAll('.page');
         
-        allPages.forEach(p => {
-            p.classList.remove('active', 'slide-in-right', 'slide-in-left');
-        });
+        allPages.forEach(p => { p.classList.remove('active', 'slide-in-right', 'slide-in-left'); });
         
-        if (direction === 'left') { targetPage.classList.add('slide-in-right'); } 
-        else if (direction === 'right') { targetPage.classList.add('slide-in-left'); } 
-        else { targetPage.style.animation = 'pageEnter 0.6s var(--ios-ease) forwards'; }
+        if (direction === 'left') targetPage.classList.add('slide-in-right');
+        else if (direction === 'right') targetPage.classList.add('slide-in-left');
+        else targetPage.style.animation = 'pageEnter 0.6s var(--ios-ease) forwards';
         
         targetPage.classList.add('active');
-        
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         const navIndex = pages.indexOf(pageId);
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
-        // V66: Replay & Sync Home Animations
         if(pageId === 'home') {
             if(window.cachedTotal) {
                 let displayNum = window.cachedTotal;
                 let suffix = "";
                 if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
                 else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
-                
-                // Duration: 2000ms
                 animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, window.cachedTotal < 0, "", "");
                 document.getElementById('displayUnit').innerText = suffix;
             }
-
             const bars = document.querySelectorAll('.struct-seg');
-            bars.forEach(b => { 
-                const w = b.style.width; 
-                b.style.width = '0%'; 
-                setTimeout(() => b.style.width = w, 50); 
-            });
-
+            bars.forEach(b => { const w = b.style.width; b.style.width = '0%'; setTimeout(() => b.style.width = w, 50); });
             requestAnimationFrame(() => {
                 const line = document.querySelector('.trend-line');
                 const area = document.querySelector('.trend-area');
                 if(line) {
-                    // Reset
-                    line.style.transition = 'none';
-                    line.style.strokeDasharray = line.getTotalLength();
-                    line.style.strokeDashoffset = line.getTotalLength();
+                    line.style.transition = 'none'; line.style.strokeDasharray = line.getTotalLength(); line.style.strokeDashoffset = line.getTotalLength();
                     if(area) area.classList.remove('visible');
-                    
-                    // Force Reflow & Animate
                     requestAnimationFrame(() => {
-                        line.getBoundingClientRect(); 
-                        line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
-                        line.style.strokeDashoffset = '0';
-                        // Fade in Area (Wait 1.5s-2s to match line)
-                        if(area) {
-                            setTimeout(() => area.classList.add('visible'), 1500); 
-                        }
+                        line.getBoundingClientRect(); line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)'; line.style.strokeDashoffset = '0';
+                        if(area) setTimeout(() => area.classList.add('visible'), 1500); 
                     });
-                    
-                    // Sync labels
-                    document.querySelectorAll('.chart-label').forEach(l => {
-                        l.classList.remove('visible');
-                        // Use timeout to match CSS delay
-                        setTimeout(() => l.classList.add('visible'), 100);
-                    });
+                    document.querySelectorAll('.chart-label').forEach(l => { l.classList.remove('visible'); setTimeout(() => l.classList.add('visible'), 100); });
                 }
             });
         }
-
         if(pageId === 'analysis') {
-            document.querySelectorAll('.chart-card').forEach(card => {
-                card.classList.remove('pie-anim');
-                void card.offsetWidth; 
-                card.classList.add('pie-anim');
-            });
-            
-            document.querySelectorAll('.holding-bar-fill').forEach(bar => {
-                const w = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => bar.style.width = w, 100);
-            });
-            
-            document.querySelectorAll('.risk-seg').forEach(bar => {
-                const w = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => bar.style.width = w, 100);
-            });
+            document.querySelectorAll('.chart-card').forEach(card => { card.classList.remove('pie-anim'); void card.offsetWidth; card.classList.add('pie-anim'); });
+            document.querySelectorAll('.holding-bar-fill').forEach(bar => { const w = bar.style.width; bar.style.width = '0%'; setTimeout(() => bar.style.width = w, 100); });
+            document.querySelectorAll('.risk-seg').forEach(bar => { const w = bar.style.width; bar.style.width = '0%'; setTimeout(() => bar.style.width = w, 100); });
         }
-        
         if(pageId === 'list') {
             const cards = document.querySelectorAll('.category-group');
-            cards.forEach((card, index) => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                setTimeout(() => {
-                    card.style.opacity = '1';
-                    card.style.transform = 'translateY(0)';
-                }, index * 80);
-            });
-            
-            document.querySelectorAll('.weight-bar').forEach(bar => {
-                const w = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => bar.style.width = w, 200);
-            });
-
+            cards.forEach((card, index) => { card.style.opacity = '0'; card.style.transform = 'translateY(20px)'; setTimeout(() => { card.style.opacity = '1'; card.style.transform = 'translateY(0)'; }, index * 80); });
+            document.querySelectorAll('.weight-bar').forEach(bar => { const w = bar.style.width; bar.style.width = '0%'; setTimeout(() => bar.style.width = w, 200); });
             document.querySelectorAll('.cat-amount').forEach(el => {
                 const targetText = el.getAttribute('data-value');
                 if(targetText) {
-                    const cleanVal = targetText.replace(/[^0-9.-]+/g,"");
-                    const num = parseFloat(cleanVal);
-                    let suffix = "";
-                    let displayNum = num;
+                    const cleanVal = targetText.replace(/[^0-9.-]+/g,""); const num = parseFloat(cleanVal);
+                    let suffix = ""; let displayNum = num;
                     if(Math.abs(num) >= 100000000) { suffix = " 億"; displayNum = num / 100000000; } 
                     else if (Math.abs(num) >= 10000) { suffix = " 萬"; displayNum = num / 10000; }
-                    
                     animateValue(el, 0, displayNum, 2500, targetText.includes('-'), suffix, "NT$ ");
                 }
             });
@@ -644,48 +537,15 @@
             if (!startTimestamp) startTimestamp = timestamp;
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const easeProgress = 1 - Math.pow(1 - progress, 5);
-            
             const currentVal = easeProgress * (end - start) + start;
-            
-            // V66: STRICT INTEGER during animation
-            let displayStr = "";
-            if(suffix) {
-                // If using suffix (Wan/Yi), we usually want decimals? 
-                // User asked for "No Decimals" in V55/V57. 
-                // Let's stick to 2 decimals for Wan/Yi to make it readable, 
-                // BUT user said "even during animation... pure integer".
-                // Okay, if user wants pure integer even for Wan/Yi, it might look jumpy (4228 -> 4229).
-                // Let's assume standard: 2 decimals for suffixes, 0 for raw.
-                // WAIT, user complained about decimals in V55. 
-                // So I will force 0 decimals for EVERYTHING in list, but header might need 2 for Wan.
-                // Let's use 2 decimals for Suffix (Wan/Yi) to be precise, but 0 for others.
-                
-                // RE-READ: "這邊還是有小數點" refers to List or Header?
-                // Usually List. Header 4228.26 Wan is fine. 
-                // List items like 3,766.00 Wan -> should be 3,766 Wan.
-                // I will force 2 decimals for Header (Suffix) but remove .00 if it's whole number?
-                // Let's just use 2 decimals for Suffix to be safe for "rolling", 
-                // but for List items (which usually don't have suffix in animation call if raw), force 0.
-                
-                // Actually, let's just do 2 decimals for suffix, 0 for others.
-                displayStr = currentVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            } else {
-                displayStr = Math.round(currentVal).toLocaleString();
-            }
-            
+            // V67 FIX: Force Round
+            let displayStr = Math.round(currentVal).toLocaleString();
             let sign = isNegative ? "- " : "";
             obj.innerHTML = prefix + sign + displayStr + suffix;
-            
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            } else {
-                // Final state
-                let finalStr = "";
-                if(suffix) {
-                     finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                } else {
-                     finalStr = Math.round(end).toLocaleString();
-                }
+            if (progress < 1) { window.requestAnimationFrame(step); } 
+            else {
+                // V67 FIX: Final value round
+                let finalStr = Math.round(end).toLocaleString();
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
         };
@@ -710,32 +570,24 @@
         return (num / 1000).toFixed(1) + 'k';
     }
     
-    // V66: Force Integer in List
     function formatChineseCurrency(num) {
         if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
         if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
     }
     
-    function formatTrendVal(num) {
-        return (num > 0 ? "+" : "") + Math.round(num).toLocaleString();
-    }
-
+    function formatTrendVal(num) { return (num > 0 ? "+" : "") + Math.round(num).toLocaleString(); }
     function toggleGroup(header) { header.parentElement.classList.toggle('open'); }
 
-    // V66: Safety Valve Fetch
     async function fetchData(needsNetwork = true) {
         document.getElementById('loadingOverlay').classList.add('active');
         document.getElementById('errorMsg').style.display = 'none';
         
         try {
             let url = document.getElementById('csvUrl').value.trim();
-            if (!url) { return; } // Finally block will handle removal
+            if (!url) return; 
             
-            if (!needsNetwork && window.cachedCSV) { 
-                parseCSV(window.cachedCSV); 
-                return; 
-            }
+            if (!needsNetwork && window.cachedCSV) { parseCSV(window.cachedCSV); return; }
 
             const cacheBuster = encodeURIComponent(url + '&t=' + Date.now());
             const proxies = [
@@ -755,19 +607,14 @@
                 } catch (e) { }
             }
             
-            if (success) {
-                window.cachedCSV = text; 
-                parseCSV(text);
-            } else {
-                throw new Error("無法連線至 Google Sheet");
-            }
+            if (success) { window.cachedCSV = text; parseCSV(text); } 
+            else { throw new Error("無法連線至 Google Sheet"); }
             
         } catch (e) {
             console.error(e);
             document.getElementById('errorMsg').style.display = 'block';
             document.getElementById('errorMsg').innerHTML = `⚠️ 讀取失敗：${e.message || "請檢查連結"}`;
         } finally {
-            // V66: ALWAYS remove loading overlay
             setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 600);
         }
     }
@@ -796,7 +643,6 @@
         let debtBreakdown = { debt: 0, interest: 0 };
         let historyData = [];
         let groups = { realestate: [], car: [], cash: [], us_stock: [], tw_stock: [], bond: [], debt: [] };
-        
         let allAssets = [];
 
         for (let i = 1; i < lines.length; i++) {
@@ -811,19 +657,15 @@
             const typeStr = row[0].toLowerCase().trim(); const name = row[1]; 
             let category = 'cash'; let displayCategory = 'cash';
             
-            if (typeStr === 'history') {
-                historyData.push({ date: name, val: price * qty });
-                continue;
-            }
+            if (typeStr === 'history') { historyData.push({ date: name, val: price * qty }); continue; }
 
             if (typeStr === 'debt') { category = 'debt'; displayCategory = 'debt'; }
             else if (typeStr === 'interest') { category = 'interest'; displayCategory = 'debt'; }
             else if (typeStr.includes('realestate') || typeStr.includes('house')) { category = 'realestate'; displayCategory = 'realestate'; }
             else if (typeStr.includes('car')) { category = 'car'; displayCategory = 'car'; }
             else if (typeStr.includes('bond')) { category = 'bond'; displayCategory = 'bond'; }
-            else if (typeStr.includes('cash') || typeStr.includes('deposit') || typeStr.includes('bank') || typeStr.includes('saving') || typeStr.includes('money') || typeStr === 'twd') {
-                category = 'cash'; displayCategory = 'cash';
-            } else if (typeStr.includes('us')) { category = 'us_stock'; displayCategory = 'us_stock'; }
+            else if (typeStr.includes('cash') || typeStr.includes('deposit') || typeStr.includes('bank') || typeStr.includes('saving') || typeStr.includes('money') || typeStr === 'twd') { category = 'cash'; displayCategory = 'cash'; } 
+            else if (typeStr.includes('us')) { category = 'us_stock'; displayCategory = 'us_stock'; }
             else if (typeStr.includes('stock') || typeStr.includes('tw') || typeStr.includes('0050')) { category = 'tw_stock'; displayCategory = 'tw_stock'; }
 
             let valTWD = 0; let displayPrice = '';
@@ -834,23 +676,17 @@
 
             if(!cats[category]) cats[category] = 0; cats[category] += valTWD;
             
-            if (category === 'debt') { 
-                totalNetWorth -= valTWD; totalDebtAbs += valTWD; debtBreakdown.debt += valTWD;
-            } else if (category === 'interest') { 
-                totalNetWorth -= valTWD; totalInterestAbs += valTWD; debtBreakdown.interest += valTWD;
-            } else {
+            if (category === 'debt') { totalNetWorth -= valTWD; totalDebtAbs += valTWD; debtBreakdown.debt += valTWD; } 
+            else if (category === 'interest') { totalNetWorth -= valTWD; totalInterestAbs += valTWD; debtBreakdown.interest += valTWD; } 
+            else {
                 totalNetWorth += valTWD; totalAssetsOnly += valTWD;
                 if (['realestate','car'].includes(category)) liquidity.fixed += valTWD; else liquidity.liquid += valTWD;
                 if (isAssetUSD) currency.usd += valTWD; else currency.twd += valTWD;
-                
                 allAssets.push({ name: name, val: valTWD, category: category });
             }
 
             if(groups[displayCategory]) {
-                groups[displayCategory].push({
-                    name, qty, displayPrice, valTWD, category, 
-                    typeStr: (category === 'debt' ? 'PRINCIPAL' : (category === 'interest' ? 'INTEREST' : ''))
-                });
+                groups[displayCategory].push({ name, qty, displayPrice, valTWD, category, typeStr: (category === 'debt' ? 'PRINCIPAL' : (category === 'interest' ? 'INTEREST' : '')) });
             }
         }
 
@@ -866,7 +702,7 @@
         if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
         else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
         
-        animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, totalNetWorth < 0, "", "");
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, "", "");
         document.getElementById('displayUnit').innerText = suffix;
         
         drawTrendChart(historyData, totalNetWorth);
@@ -875,7 +711,6 @@
         drawPie('chartCategory', 'legendCategory', 'valCategory', cats, totalAssetsOnly, ['realestate', 'car', 'cash', 'us_stock', 'tw_stock', 'bond']);
         drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
         drawPie('chartCurrency', 'legendCurrency', 'valCurrency', currency, totalAssetsOnly, ['usd', 'twd']);
-
         renderDeepDive(totalAssetsOnly, totalLiabilities, liquidity.liquid, cats.cash || 0, allAssets, historyData, totalNetWorth, cats);
 
         const container = document.getElementById('assetListContainer');
@@ -909,9 +744,7 @@
                     <div class="weight-bar" style="background-color: ${iconColor}; width: 0%;"></div>
                     <div class="category-header ${isDebtGroup ? 'is-debt' : ''}" onclick="toggleGroup(this)">
                         <div class="cat-left-content">
-                            <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}">
-                                <svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg>
-                            </div>
+                            <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}"><svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg></div>
                             <div class="cat-text-info"><span class="cat-name">${typeLabels[key]}</span><span class="cat-count">${items.length}</span></div>
                         </div>
                         <div class="cat-right-content"><span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span><span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span></div>
@@ -945,10 +778,8 @@
         const netLiquid = liquidAssets - totalDebt;
         document.getElementById('kpiNetLiquid').innerText = "NT$ " + formatChineseCurrency(netLiquid);
         document.getElementById('kpiTotalDebt').innerText = "NT$ " + formatChineseCurrency(totalDebt);
-        
         let solvency = 0;
-        if(totalDebt > 0) solvency = (liquidAssets / totalDebt).toFixed(1);
-        else solvency = "∞";
+        if(totalDebt > 0) solvency = (liquidAssets / totalDebt).toFixed(1); else solvency = "∞";
         const solvencyEl = document.getElementById('kpiSolvency');
         solvencyEl.innerText = solvency + "x";
         if(solvency < 1) solvencyEl.style.color = '#A6444D'; else solvencyEl.style.color = '#569C78';
@@ -958,9 +789,7 @@
              const now = new Date();
              const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
              const oneYearAgo = new Date(new Date().getFullYear(), 0, 1);
-             let momVal = history[0].val; 
-             let ytdVal = history[0].val; 
-             let maxVal = -Infinity;
+             let momVal = history[0].val; let ytdVal = history[0].val; let maxVal = -Infinity;
              history.forEach(h => {
                  const d = new Date(h.date);
                  if (d < thirtyDaysAgo) momVal = h.val;
@@ -972,9 +801,7 @@
              if(ytdVal !== 0) ytd = ((currentNetWorth - ytdVal) / ytdVal * 100).toFixed(1);
              if(maxVal !== 0) ath = ((currentNetWorth - maxVal) / maxVal * 100).toFixed(1);
         }
-        setGrowthColor('kpiMoM', mom);
-        setGrowthColor('kpiYTD', ytd);
-        setGrowthColor('kpiATH', ath);
+        setGrowthColor('kpiMoM', mom); setGrowthColor('kpiYTD', ytd); setGrowthColor('kpiATH', ath);
 
         const aggressive = (cats.us_stock || 0) + (cats.tw_stock || 0);
         const defensive = (cats.cash || 0) + (cats.bond || 0);
@@ -1011,9 +838,195 @@
         const el = document.getElementById(id);
         const sign = val > 0 ? "+" : "";
         el.innerText = sign + val + "%";
-        if(val > 0) el.style.color = '#569C78';
-        else if(val < 0) el.style.color = '#A6444D';
-        else el.style.color = '#888';
+        if(val > 0) el.style.color = '#569C78'; else if(val < 0) el.style.color = '#A6444D'; else el.style.color = '#888';
+    }
+
+    // --- RECOVERED FUNCTIONS (Fixed Crash) ---
+    function drawTrendChart(history, currentVal) {
+        const wrapper = document.getElementById('trendChartWrapper');
+        const svg = document.getElementById('trendSvg');
+        const labelContainer = document.getElementById('chartLabels');
+        
+        if (!history || history.length === 0) { wrapper.style.display = 'none'; return; }
+        wrapper.style.display = 'block';
+        
+        let points = [...history]; 
+        let vals = points.map(p => p.val);
+        let maxVal = Math.max(...vals); let minVal = Math.min(...vals);
+        let maxIdx = vals.lastIndexOf(maxVal); let minIdx = vals.lastIndexOf(minVal);
+        let range = maxVal - minVal; if(range === 0) range = 1;
+        
+        const w = 1000; const h = 200; const paddingY = 40; 
+        
+        let pathD = ""; let areaD = ""; 
+        chartPoints = [];
+        labelContainer.innerHTML = '';
+
+        points.forEach((p, i) => {
+            let x = (i / (points.length - 1)) * w;
+            if(points.length === 1) x = w/2;
+            let normalizedY = (p.val - minVal) / range;
+            let y = (h - paddingY) - (normalizedY * (h - paddingY * 2));
+            chartPoints.push({ x, y, val: p.val, date: p.date });
+
+            if (i === 0) { pathD += `M ${x} ${y}`; areaD += `M ${x} ${h} L ${x} ${y}`; } 
+            else { pathD += ` L ${x} ${y}`; areaD += ` L ${x} ${y}`; }
+
+            if (i === maxIdx || i === minIdx) {
+                let labelDiv = document.createElement('div');
+                labelDiv.className = 'chart-label';
+                // V67 FIX: Strict Integer for chart labels too
+                labelDiv.innerText = formatTrendVal(p.val);
+                labelDiv.style.left = (x / 10) + '%';
+                let offset = (i === maxIdx) ? -25 : 10;
+                labelDiv.style.top = (y + offset) + 'px';
+                if (i === 0) labelDiv.classList.add('left');
+                if (i === points.length - 1) labelDiv.classList.add('right');
+                labelContainer.appendChild(labelDiv);
+            }
+        });
+        
+        areaD += ` L ${points[points.length-1].length === 1 ? w/2 : w} ${h} Z`;
+        
+        const defs = svg.querySelector('defs').outerHTML;
+        const group = document.getElementById('crosshairGroup').outerHTML;
+        svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
+        
+        const svgHeight = 200;
+        requestAnimationFrame(() => {
+            const line = svg.querySelector('.trend-line');
+            const area = svg.querySelector('.trend-area');
+            if(line) {
+                line.style.transition = 'none';
+                line.style.strokeDasharray = line.getTotalLength();
+                line.style.strokeDashoffset = line.getTotalLength();
+                if(area) area.classList.remove('visible');
+                requestAnimationFrame(() => {
+                    line.getBoundingClientRect(); 
+                    line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
+                    line.style.strokeDashoffset = '0';
+                    if(area) setTimeout(() => area.classList.add('visible'), 1500); 
+                });
+                document.querySelectorAll('.chart-label').forEach(l => {
+                    l.classList.remove('visible');
+                    setTimeout(() => l.classList.add('visible'), 1500);
+                });
+            }
+        });
+
+        setupInteraction(w, h, currentVal); 
+    }
+
+    function setupInteraction(svgWidth, svgHeight, currentTotal) {
+        const overlay = document.getElementById('trendOverlay');
+        const crosshairGroup = document.getElementById('crosshairGroup');
+        const crossX = document.getElementById('crosshairX');
+        const crossY = document.getElementById('crosshairY');
+        const crossDotHtml = document.getElementById('crosshairDotHtml');
+        const hud = document.getElementById('chartHud');
+        const hudDate = document.getElementById('hudDate');
+        const hudVal = document.getElementById('hudVal');
+        const hudDelta = document.getElementById('hudDelta');
+
+        function handleMove(clientX) {
+            const rect = overlay.getBoundingClientRect();
+            const mouseX = clientX - rect.left;
+            const svgX = (mouseX / rect.width) * svgWidth;
+            if(chartPoints.length === 0) return;
+            let nearest = chartPoints[0];
+            let minDist = Math.abs(svgX - nearest.x);
+            for(let p of chartPoints) {
+                let dist = Math.abs(svgX - p.x);
+                if(dist < minDist) { minDist = dist; nearest = p; }
+            }
+
+            crosshairGroup.style.opacity = 1;
+            crossX.setAttribute('x1', nearest.x); crossX.setAttribute('x2', nearest.x);
+            crossY.setAttribute('y1', nearest.y); crossY.setAttribute('y2', nearest.y);
+            
+            crossDotHtml.style.opacity = 1;
+            crossDotHtml.style.left = (nearest.x / 10) + '%';
+            crossDotHtml.style.top = (nearest.y / 200 * 100) + '%';
+
+            hud.classList.add('visible');
+            hudDate.innerText = nearest.date;
+            hudVal.innerText = formatTrendVal(nearest.val);
+
+            let diff = currentTotal - nearest.val;
+            let sign = diff >= 0 ? "+" : "";
+            // V67: Integer Diff
+            let diffStr = sign + Math.round(diff).toLocaleString();
+            hudDelta.innerText = diffStr;
+            hudDelta.className = 'hud-delta'; 
+            if (diff > 0) hudDelta.classList.add('up');
+            else if (diff < 0) hudDelta.classList.add('down');
+            else hudDelta.classList.add('flat');
+        }
+
+        function handleEnd() {
+            crosshairGroup.style.opacity = 0; crossDotHtml.style.opacity = 0; hud.classList.remove('visible');
+        }
+
+        overlay.onmousemove = (e) => handleMove(e.clientX);
+        overlay.onmouseleave = handleEnd;
+        overlay.ontouchmove = (e) => { e.preventDefault(); handleMove(e.touches[0].clientX); };
+        overlay.ontouchend = handleEnd;
+    }
+
+    function drawStructureBar(data, total) {
+        if(total === 0) return;
+        const pctNet = (data.networth / total) * 100;
+        const pctDebt = (data.debt / total) * 100;
+        const pctInt = (data.interest / total) * 100;
+        document.getElementById('barNetworth').style.width = pctNet + '%';
+        document.getElementById('barDebt').style.width = pctDebt + '%';
+        document.getElementById('barInterest').style.width = pctInt + '%';
+        document.getElementById('structNetWorth').innerText = formatCompact(data.networth);
+        const debtRatio = ((data.debt + data.interest) / total * 100).toFixed(1);
+        document.getElementById('structDebtRatio').innerText = debtRatio + '%';
+        const legendBox = document.getElementById('legendLeverage');
+        legendBox.innerHTML = '';
+        const keys = ['networth', 'debt', 'interest'];
+        keys.forEach(key => {
+            const val = data[key];
+            if(val > 0) {
+                const pct = (val / total * 100).toFixed(1);
+                const valCompact = formatCompact(val);
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-dot" style="background: ${colors[key]}"></div><span class="legend-name">${typeLabels[key]} ${pct}% <span style="opacity:0.7;">(${valCompact})</span></span>`;
+                legendBox.appendChild(item);
+            }
+        });
+    }
+
+    function drawPie(chartId, legendId, valId, dataMap, total, keysOrder) {
+        if (total === 0) return;
+        let grad = []; let cur = 0;
+        for (let type of keysOrder) {
+            let val = dataMap[type] || 0;
+            if (val > 0) {
+                let deg = (val / total) * 360;
+                grad.push(`${colors[type]} ${cur}deg ${cur + deg}deg`);
+                cur += deg;
+            }
+        }
+        const ring = document.getElementById(chartId); 
+        if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
+        document.getElementById(valId).innerText = formatCompact(Math.round(total));
+        const legendBox = document.getElementById(legendId);
+        legendBox.innerHTML = '';
+        for (let type of keysOrder) {
+            let val = dataMap[type] || 0;
+            if (val > 0) {
+                let pct = (val / total * 100).toFixed(1);
+                let valCompact = formatCompact(val);
+                const item = document.createElement('div');
+                item.className = 'legend-item';
+                item.innerHTML = `<div class="legend-dot" style="background: ${colors[type]}"></div><span class="legend-name">${typeLabels[type]} ${pct}% <span style="opacity:0.7;">(${valCompact})</span></span>`;
+                legendBox.appendChild(item);
+            }
+        }
     }
 </script>
 
