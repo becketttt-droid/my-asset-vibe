@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V67 Stable)</title>
+    <title>My Net Worth (V68 Fixed)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -151,7 +151,6 @@
         .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
         .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-        /* V67: Area fade in delay 2s to match line drawing */
         .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0; transition: opacity 1s ease 2s; }
         .trend-area.visible { opacity: 0.6; }
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
@@ -403,7 +402,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V67.0<br>Stable & Integer
+                Vibe Coding V68.0<br>Full Fix
             </div>
         </div>
     </div>
@@ -538,14 +537,23 @@
             const progress = Math.min((timestamp - startTimestamp) / duration, 1);
             const easeProgress = 1 - Math.pow(1 - progress, 5);
             const currentVal = easeProgress * (end - start) + start;
-            // V67 FIX: Force Round
-            let displayStr = Math.round(currentVal).toLocaleString();
+            let displayStr = "";
+            if(suffix) {
+                // V68: Keep 2 decimals for Wan/Yi suffix for better precision
+                displayStr = currentVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            } else {
+                displayStr = Math.round(currentVal).toLocaleString();
+            }
             let sign = isNegative ? "- " : "";
             obj.innerHTML = prefix + sign + displayStr + suffix;
             if (progress < 1) { window.requestAnimationFrame(step); } 
             else {
-                // V67 FIX: Final value round
-                let finalStr = Math.round(end).toLocaleString();
+                let finalStr = "";
+                if(suffix) {
+                     finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                     finalStr = Math.round(end).toLocaleString();
+                }
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
         };
@@ -578,6 +586,20 @@
     
     function formatTrendVal(num) { return (num > 0 ? "+" : "") + Math.round(num).toLocaleString(); }
     function toggleGroup(header) { header.parentElement.classList.toggle('open'); }
+
+    // V68: FIXED - Re-added hexToRgba function
+    function hexToRgba(hex, alpha) {
+        let c;
+        if(/^#([A-Fa-f0-9]{3}){1,2}$/.test(hex)){
+            c= hex.substring(1).split('');
+            if(c.length== 3){
+                c= [c[0], c[0], c[1], c[1], c[2], c[2]];
+            }
+            c= '0x'+c.join('');
+            return 'rgba('+[(c>>16)&255, (c>>8)&255, c&255].join(',')+','+alpha+')';
+        }
+        return 'rgba(255,255,255,0.1)';
+    }
 
     async function fetchData(needsNetwork = true) {
         document.getElementById('loadingOverlay').classList.add('active');
@@ -744,7 +766,9 @@
                     <div class="weight-bar" style="background-color: ${iconColor}; width: 0%;"></div>
                     <div class="category-header ${isDebtGroup ? 'is-debt' : ''}" onclick="toggleGroup(this)">
                         <div class="cat-left-content">
-                            <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}"><svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg></div>
+                            <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}">
+                                <svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg>
+                            </div>
                             <div class="cat-text-info"><span class="cat-name">${typeLabels[key]}</span><span class="cat-count">${items.length}</span></div>
                         </div>
                         <div class="cat-right-content"><span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span><span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span></div>
@@ -841,7 +865,6 @@
         if(val > 0) el.style.color = '#569C78'; else if(val < 0) el.style.color = '#A6444D'; else el.style.color = '#888';
     }
 
-    // --- RECOVERED FUNCTIONS (Fixed Crash) ---
     function drawTrendChart(history, currentVal) {
         const wrapper = document.getElementById('trendChartWrapper');
         const svg = document.getElementById('trendSvg');
@@ -875,7 +898,6 @@
             if (i === maxIdx || i === minIdx) {
                 let labelDiv = document.createElement('div');
                 labelDiv.className = 'chart-label';
-                // V67 FIX: Strict Integer for chart labels too
                 labelDiv.innerText = formatTrendVal(p.val);
                 labelDiv.style.left = (x / 10) + '%';
                 let offset = (i === maxIdx) ? -25 : 10;
@@ -954,7 +976,6 @@
 
             let diff = currentTotal - nearest.val;
             let sign = diff >= 0 ? "+" : "";
-            // V67: Integer Diff
             let diffStr = sign + Math.round(diff).toLocaleString();
             hudDelta.innerText = diffStr;
             hudDelta.className = 'hud-delta'; 
