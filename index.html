@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V63 Deep Dive)</title>
+    <title>My Net Worth (V64 Dot Fix)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -59,6 +59,7 @@
             position: relative; 
             min-height: 100vh;
             padding: calc(20px + var(--safe-top)) 20px calc(90px + var(--safe-bottom)) 20px; 
+            transition: max-width 0.3s ease;
         }
 
         /* --- Loading Overlay --- */
@@ -70,16 +71,39 @@
             opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
         }
         .loading-overlay.active { opacity: 1; pointer-events: all; }
-        .spinner { width: 44px; height: 44px; border: 3px solid rgba(255,255,255,0.1); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 20px; }
+        
+        .spinner {
+            width: 44px; height: 44px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
         .loading-text { font-size: 14px; color: var(--subtext); letter-spacing: 1px; font-weight: 500; }
 
         /* --- Hero Header --- */
-        header { text-align: center; margin-bottom: 25px; margin-top: 10px; display: flex; flex-direction: column; align-items: center; }
-        .total-title { font-size: 13px; color: #666; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; font-weight: 600; }
-        .total-amount-box { display: flex; align-items: baseline; justify-content: center; line-height: 1; gap: 6px; white-space: nowrap; flex-wrap: nowrap; }
+        header { 
+            text-align: center; 
+            margin-bottom: 25px; 
+            margin-top: 10px; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .total-title { 
+            font-size: 13px; color: #666; letter-spacing: 2px; 
+            text-transform: uppercase; margin-bottom: 8px; font-weight: 600;
+        }
+        .total-amount-box {
+            display: flex; align-items: baseline; justify-content: center;
+            line-height: 1; gap: 6px;
+            white-space: nowrap; flex-wrap: nowrap;
+        }
         .currency-symbol { font-size: 20px; font-weight: 500; color: var(--subtext); transform: translateY(-6px); }
-        .total-main-num { font-size: clamp(36px, 11vw, 60px); font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+        .total-main-num {
+            font-size: clamp(36px, 11vw, 60px); font-weight: 700; color: #fff;
+            font-variant-numeric: tabular-nums; letter-spacing: -1px;
+        }
         .unit-tag { font-size: 20px; font-weight: 500; color: var(--text); }
 
         /* --- Page & Transitions --- */
@@ -92,7 +116,16 @@
         @keyframes slideInLeft { from { opacity: 0; transform: translateX(-50px); } to { opacity: 1; transform: translateX(0); } }
 
         /* --- Navigation Bar --- */
-        .nav-bar { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); border-top: 1px solid #1a1a1a; display: flex; justify-content: space-around; align-items: center; padding-bottom: var(--safe-bottom); height: calc(60px + var(--safe-bottom)); z-index: 100; transition: all 0.3s ease; }
+        .nav-bar {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(20px);
+            border-top: 1px solid #1a1a1a;
+            display: flex; justify-content: space-around; align-items: center;
+            padding-bottom: var(--safe-bottom);
+            height: calc(60px + var(--safe-bottom));
+            z-index: 100;
+            transition: all 0.3s ease;
+        }
         .nav-item { flex: 1; height: 100%; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; transition: transform 0.2s var(--ios-ease); }
         .nav-item:active { transform: scale(0.92); }
         .nav-item:hover .nav-icon svg { fill: var(--nav-hover); opacity: 1; transform: translateY(-3px); filter: drop-shadow(0 0 5px rgba(255,255,255,0.3)); }
@@ -127,7 +160,16 @@
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
         .crosshair-line { stroke: var(--crosshair); stroke-width: 1; opacity: 0.5; vector-effect: non-scaling-stroke; }
-        .crosshair-dot-html { position: absolute; width: 8px; height: 8px; background-color: var(--crosshair); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; opacity: 0; transition: opacity 0.1s; z-index: 15; box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.5); }
+        
+        /* V64: Dot position fix */
+        .crosshair-dot-html { 
+            position: absolute; width: 8px; height: 8px; 
+            background-color: var(--crosshair); border-radius: 50%; 
+            transform: translate(-50%, -50%); 
+            pointer-events: none; opacity: 0; transition: opacity 0.1s; 
+            z-index: 15; box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.5); 
+        }
+        
         .chart-hud { position: absolute; top: 12px; left: 15px; pointer-events: none; opacity: 0; transition: opacity 0.2s; z-index: 20; display: flex; flex-direction: column; gap: 2px; }
         .chart-hud.visible { opacity: 1; }
         .hud-date { color: var(--subtext); font-size: 11px; font-weight: 600; }
@@ -225,10 +267,8 @@
             header { grid-column: 1 / -1; margin-bottom: 30px; }
             .trend-wrapper { height: 400px; margin-bottom: 0; }
             .chart-card { height: 100%; justify-content: center; }
-            
-            .analysis-extended { grid-template-columns: 1fr 1fr; } /* Side by side on desktop */
+            .analysis-extended { grid-template-columns: 1fr 1fr; }
             .analysis-grid { grid-template-columns: repeat(4, 1fr); gap: 20px; }
-            
             .asset-list-container { grid-template-columns: repeat(3, 1fr); gap: 20px; }
             .nav-bar { width: 400px; left: 50%; transform: translateX(-50%); bottom: 20px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.8); }
         }
@@ -395,7 +435,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V63.0<br>Deep Dive
+                Vibe Coding V64.0<br>Dot Locked
             </div>
         </div>
     </div>
@@ -433,7 +473,7 @@
     const categoryIcons = {
         realestate: '<path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>',
         car: '<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>',
-        cash: '<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h1c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-1zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
+        cash: '<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-1zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
         us_stock: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>',
         tw_stock: '<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>',
         bond: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
@@ -565,6 +605,7 @@
                 }, index * 80);
             });
             
+            // V62: Animate Weight Bars
             document.querySelectorAll('.weight-bar').forEach(bar => {
                 const w = bar.style.width;
                 bar.style.width = '0%';
@@ -596,6 +637,7 @@
             
             const currentVal = easeProgress * (end - start) + start;
             
+            // V57: Strict rounding during animation
             let displayStr = Math.round(currentVal).toLocaleString();
             
             let sign = isNegative ? "- " : "";
@@ -604,6 +646,7 @@
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
+                // V57: Strict rounding for final value
                 let finalStr = Math.round(end).toLocaleString();
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
@@ -630,6 +673,7 @@
     }
     
     function formatChineseCurrency(num) {
+        // V57: Strict Rounding
         if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
         if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
@@ -796,47 +840,77 @@
         renderDeepDive(totalAssetsOnly, totalLiabilities, liquidity.liquid, cats.cash || 0, allAssets);
 
         const container = document.getElementById('assetListContainer');
+        
+        // V61: Dynamic Smart Sorting
         const groupTotals = {};
-        Object.keys(groups).forEach(key => { if(groups[key].length > 0) groupTotals[key] = groups[key].reduce((sum, item) => sum + item.valTWD, 0); });
+        Object.keys(groups).forEach(key => {
+            if(groups[key].length > 0) {
+                groupTotals[key] = groups[key].reduce((sum, item) => sum + item.valTWD, 0);
+            }
+        });
+
         const assetKeys = Object.keys(groups).filter(k => k !== 'debt' && groups[k].length > 0);
         const debtKeys = Object.keys(groups).filter(k => k === 'debt' && groups[k].length > 0);
+
         assetKeys.sort((a, b) => groupTotals[b] - groupTotals[a]);
+        
         const order = [...assetKeys, ...debtKeys];
         
         order.forEach(key => {
             const items = groups[key];
             if(items && items.length > 0) {
                 items.sort((a, b) => b.valTWD - a.valTWD);
+
                 let groupTotal = Math.round(items.reduce((sum, item) => sum + item.valTWD, 0));
                 let isDebtGroup = (key === 'debt');
+                
                 let displayTotal = formatChineseCurrency(groupTotal);
                 if(isDebtGroup) displayTotal = `- ${displayTotal}`;
-                let pct = 0; let rawPct = 0;
-                if(isDebtGroup) { if(totalLiabilities > 0) rawPct = (groupTotal / totalLiabilities * 100); } 
-                else { if(totalAssetsOnly > 0) rawPct = (groupTotal / totalAssetsOnly * 100); }
+
+                // V62: Calculate Weight Bar Width
+                let pct = 0;
+                let rawPct = 0;
+                if(isDebtGroup) {
+                    if(totalLiabilities > 0) rawPct = (groupTotal / totalLiabilities * 100);
+                } else {
+                    if(totalAssetsOnly > 0) rawPct = (groupTotal / totalAssetsOnly * 100);
+                }
                 pct = rawPct.toFixed(1);
 
                 const groupDiv = document.createElement('div');
                 groupDiv.className = 'category-group';
+                
                 let iconPath = categoryIcons[key] || categoryIcons['default'];
                 if (key === 'debt') iconPath = categoryIcons['debt'];
                 let iconColor = colors[key];
                 
                 groupDiv.innerHTML = `
                     <div class="weight-bar" style="background-color: ${iconColor}; width: 0%;"></div>
+                    
                     <div class="category-header ${isDebtGroup ? 'is-debt' : ''}" onclick="toggleGroup(this)">
                         <div class="cat-left-content">
                             <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}">
                                 <svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg>
                             </div>
-                            <div class="cat-text-info"><span class="cat-name">${typeLabels[key]}</span><span class="cat-count">${items.length}</span></div>
+                            <div class="cat-text-info">
+                                <span class="cat-name">${typeLabels[key]}</span>
+                                <span class="cat-count">${items.length}</span>
+                            </div>
                         </div>
-                        <div class="cat-right-content"><span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span><span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span></div>
+                        <div class="cat-right-content">
+                            <span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span>
+                            <span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span>
+                        </div>
                         <div class="arrow-icon">▼</div>
                     </div>
                     <div class="category-content"></div>
                 `;
+                
+                // Store the final width target in style, but init at 0
+                // Logic: We set width:0 in HTML, then JS updates it to rawPct%
+                // But we need to pass the rawPct to the element
                 groupDiv.querySelector('.weight-bar').style.width = rawPct + '%'; 
+                
                 const contentDiv = groupDiv.querySelector('.category-content');
                 items.forEach(item => {
                     const isLiability = (item.category === 'debt' || item.category === 'interest');
@@ -847,10 +921,15 @@
                     let tag = '';
                     if(isLiability) tag = item.typeStr;
                     else if(totalAssetsOnly > 0) tag = (item.valTWD / totalAssetsOnly * 100).toFixed(1) + '%';
+                    
                     let valRounded = Math.round(item.valTWD);
+                    
                     const itemEl = document.createElement('div');
                     itemEl.className = `asset-item ${itemClass}`;
-                    itemEl.innerHTML = `<div class="asset-info"><h4>${item.name}</h4><p>${item.qty} 單位 • ${item.displayPrice}</p></div><div class="asset-val">${itemSign} NT$ ${valRounded.toLocaleString()}<small>${tag}</small></div>`;
+                    itemEl.innerHTML = `
+                        <div class="asset-info"><h4>${item.name}</h4><p>${item.qty} 單位 • ${item.displayPrice}</p></div>
+                        <div class="asset-val">${itemSign} NT$ ${valRounded.toLocaleString()}<small>${tag}</small></div>
+                    `;
                     contentDiv.appendChild(itemEl);
                 });
                 container.appendChild(groupDiv);
@@ -969,6 +1048,9 @@
         const group = document.getElementById('crosshairGroup').outerHTML;
         svg.innerHTML = `${defs}<path d="${areaD}" class="trend-area" /><path d="${pathD}" class="trend-line" />${group}`;
         
+        // V64: Fix dot position by using % for top
+        const svgHeight = 200; // Based on viewBox height
+        
         requestAnimationFrame(() => {
             const line = svg.querySelector('.trend-line');
             const area = svg.querySelector('.trend-area');
@@ -994,7 +1076,8 @@
             }
         });
 
-        setupInteraction(w, h, currentVal);
+        // Pass svgHeight to interaction setup
+        setupInteraction(w, h, currentVal); 
     }
 
     function setupInteraction(svgWidth, svgHeight, currentTotal) {
@@ -1031,9 +1114,11 @@
             crossX.setAttribute('x1', nearest.x); crossX.setAttribute('x2', nearest.x);
             crossY.setAttribute('y1', nearest.y); crossY.setAttribute('y2', nearest.y);
             
+            // V64 FIX: Use % for top position to handle responsive height stretching
             crossDotHtml.style.opacity = 1;
             crossDotHtml.style.left = (nearest.x / 10) + '%';
-            crossDotHtml.style.top = nearest.y + 'px';
+            // Calculate % based on svg internal height (200)
+            crossDotHtml.style.top = (nearest.y / svgHeight * 100) + '%';
 
             hud.classList.add('visible');
             hudDate.innerText = nearest.date;
@@ -1109,6 +1194,8 @@
         
         const ring = document.getElementById(chartId); 
         if(ring) ring.style.background = `conic-gradient(${grad.join(', ')})`;
+        
+        // V57: No Decimals in Pie
         document.getElementById(valId).innerText = formatCompact(Math.round(total));
 
         const legendBox = document.getElementById(legendId);
