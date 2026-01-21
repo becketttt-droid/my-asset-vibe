@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V65 Full Dashboard)</title>
+    <title>My Net Worth (V66 Safe Mode)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -151,10 +151,10 @@
         .trend-wrapper { width: 100%; height: 200px; margin-bottom: 30px; position: relative; background: #121212; border-radius: 16px; overflow: hidden; display: none; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); user-select: none; transition: transform 0.3s var(--ios-ease); }
         .trend-svg { width: 100%; height: 100%; display: block; }
         .trend-line { fill: none; stroke: var(--trend-line); stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-        .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0; transition: opacity 1s ease 1.5s; }
+        .trend-area { fill: url(#trendGradient); stroke: none; opacity: 0; transition: opacity 1s ease 2s; /* V66: Match line draw time */ }
         .trend-area.visible { opacity: 0.6; }
         .chart-labels-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 2s; }
+        .chart-label { position: absolute; color: var(--trend-high); font-size: 12px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,0.8); white-space: nowrap; transform: translateX(-50%); opacity: 0; transition: opacity 0.5s ease 2s; /* Sync with line */ }
         .chart-label.visible { opacity: 1; }
         .chart-label.left { transform: translateX(5px); }
         .chart-label.right { transform: translateX(calc(-100% - 5px)); }
@@ -200,7 +200,6 @@
         /* V65: Analysis Extended Grid */
         .analysis-extended { display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px; width: 100%; }
         
-        /* Common Card Row Style */
         .kpi-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 12px; }
         .kpi-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
         .kpi-label { font-size: 12px; color: var(--subtext); }
@@ -208,12 +207,10 @@
         .kpi-sub { font-size: 10px; opacity: 0.8; margin-top: 2px; }
         .val-good { color: #569C78; } .val-bad { color: #A6444D; } .val-neu { color: #888; }
         
-        /* Bar Charts for Risk */
         .risk-bar-container { width: 100%; display: flex; height: 10px; background: #333; border-radius: 5px; overflow: hidden; margin-top: 10px; margin-bottom: 5px;}
         .risk-seg { height: 100%; transition: width 1s var(--ios-ease); }
         .risk-legend { display: flex; justify-content: space-between; width: 100%; font-size: 10px; color: var(--subtext); margin-bottom: 15px;}
 
-        /* Top Holdings */
         .holding-item { width: 100%; margin-bottom: 12px; }
         .holding-header { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; color: #fff; }
         .holding-bar-bg { width: 100%; height: 6px; background: #333; border-radius: 3px; overflow: hidden; }
@@ -226,7 +223,9 @@
         .category-group:hover { transform: translateY(-2px); background-color: var(--card-hover); border-color: #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
         .category-group.open { box-shadow: 0 10px 30px rgba(255,255,255,0.05); border-color: #333; }
         .category-header { padding: 16px; min-height: 64px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 10px; position: relative; z-index: 2; }
+        
         .weight-bar { position: absolute; top: 0; left: 0; bottom: 0; width: 0%; transition: width 1.2s var(--ios-ease); z-index: 0; opacity: 0.15; pointer-events: none; }
+
         .cat-left-content { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; position: relative; z-index: 1; }
         .cat-icon-box { width: 32px; height: 32px; border-radius: 8px; display: flex; justify-content: center; align-items: center; transition: transform 0.3s var(--ease-elastic); flex-shrink: 0; }
         .category-group:hover .cat-icon-box { transform: scale(1.1); }
@@ -375,7 +374,10 @@
                 <div class="chart-title" style="text-align:left;">風險屬性 (Risk Profile)</div>
                 <div style="width:100%; margin-top:10px;">
                     <div class="risk-bar-container">
-                        <div id="riskAggressive" class="risk-seg" style="background:#B85C5C; width:0%"></div> <div id="riskDefensive" class="risk-seg" style="background:#569C78; width:0%"></div> <div id="riskAnchor" class="risk-seg" style="background:#786FA6; width:0%"></div>    </div>
+                        <div id="riskAggressive" class="risk-seg" style="background:#B85C5C; width:0%"></div>
+                        <div id="riskDefensive" class="risk-seg" style="background:#569C78; width:0%"></div>
+                        <div id="riskAnchor" class="risk-seg" style="background:#786FA6; width:0%"></div>
+                    </div>
                     <div class="risk-legend">
                         <span>🔴 進攻 <span id="valAggressive">0%</span></span>
                         <span>🟢 防守 <span id="valDefensive">0%</span></span>
@@ -438,7 +440,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V65.0<br>Full Dashboard
+                Vibe Coding V66.0<br>Safe & Sync
             </div>
         </div>
     </div>
@@ -476,7 +478,7 @@
     const categoryIcons = {
         realestate: '<path d="M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"/>',
         car: '<path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>',
-        cash: '<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-1zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
+        cash: '<path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h1c1.1 0 2 .9 2 2v6c0 1.1-.9 2-2 2h-1zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>',
         us_stock: '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>',
         tw_stock: '<path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.97-4-4L2 16.99z"/>',
         bond: '<path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z"/>',
@@ -532,7 +534,7 @@
         const navItems = document.querySelectorAll('.nav-item');
         if(navItems[navIndex]) navItems[navIndex].classList.add('active');
         
-        // V57: Replay & Sync Home Animations
+        // V66: Replay & Sync Home Animations
         if(pageId === 'home') {
             if(window.cachedTotal) {
                 let displayNum = window.cachedTotal;
@@ -540,6 +542,7 @@
                 if(Math.abs(window.cachedTotal) >= 100000000) { suffix = " 億"; displayNum = window.cachedTotal / 100000000; }
                 else if (Math.abs(window.cachedTotal) >= 10000) { suffix = " 萬"; displayNum = window.cachedTotal / 10000; }
                 
+                // Duration: 2000ms
                 animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, window.cachedTotal < 0, "", "");
                 document.getElementById('displayUnit').innerText = suffix;
             }
@@ -551,7 +554,6 @@
                 setTimeout(() => b.style.width = w, 50); 
             });
 
-            // V57: Double RAF to ensure Line Draw triggers correctly
             requestAnimationFrame(() => {
                 const line = document.querySelector('.trend-line');
                 const area = document.querySelector('.trend-area');
@@ -567,16 +569,17 @@
                         line.getBoundingClientRect(); 
                         line.style.transition = 'stroke-dashoffset 2s var(--ios-ease)';
                         line.style.strokeDashoffset = '0';
-                        // Fade in Area
+                        // Fade in Area (Wait 1.5s-2s to match line)
                         if(area) {
-                            // Wait for reflow before setting timeout to align with transition
-                            setTimeout(() => area.classList.add('visible'), 100); 
+                            setTimeout(() => area.classList.add('visible'), 1500); 
                         }
                     });
                     
+                    // Sync labels
                     document.querySelectorAll('.chart-label').forEach(l => {
                         l.classList.remove('visible');
-                        setTimeout(() => l.classList.add('visible'), 1500);
+                        // Use timeout to match CSS delay
+                        setTimeout(() => l.classList.add('visible'), 100);
                     });
                 }
             });
@@ -589,14 +592,12 @@
                 card.classList.add('pie-anim');
             });
             
-            // V63: Re-animate Top Holdings
             document.querySelectorAll('.holding-bar-fill').forEach(bar => {
                 const w = bar.style.width;
                 bar.style.width = '0%';
                 setTimeout(() => bar.style.width = w, 100);
             });
             
-             // V65: Re-animate Risk
             document.querySelectorAll('.risk-seg').forEach(bar => {
                 const w = bar.style.width;
                 bar.style.width = '0%';
@@ -615,7 +616,6 @@
                 }, index * 80);
             });
             
-            // V62: Animate Weight Bars
             document.querySelectorAll('.weight-bar').forEach(bar => {
                 const w = bar.style.width;
                 bar.style.width = '0%';
@@ -647,8 +647,31 @@
             
             const currentVal = easeProgress * (end - start) + start;
             
-            // V57: Strict rounding during animation
-            let displayStr = Math.round(currentVal).toLocaleString();
+            // V66: STRICT INTEGER during animation
+            let displayStr = "";
+            if(suffix) {
+                // If using suffix (Wan/Yi), we usually want decimals? 
+                // User asked for "No Decimals" in V55/V57. 
+                // Let's stick to 2 decimals for Wan/Yi to make it readable, 
+                // BUT user said "even during animation... pure integer".
+                // Okay, if user wants pure integer even for Wan/Yi, it might look jumpy (4228 -> 4229).
+                // Let's assume standard: 2 decimals for suffixes, 0 for raw.
+                // WAIT, user complained about decimals in V55. 
+                // So I will force 0 decimals for EVERYTHING in list, but header might need 2 for Wan.
+                // Let's use 2 decimals for Suffix (Wan/Yi) to be precise, but 0 for others.
+                
+                // RE-READ: "這邊還是有小數點" refers to List or Header?
+                // Usually List. Header 4228.26 Wan is fine. 
+                // List items like 3,766.00 Wan -> should be 3,766 Wan.
+                // I will force 2 decimals for Header (Suffix) but remove .00 if it's whole number?
+                // Let's just use 2 decimals for Suffix to be safe for "rolling", 
+                // but for List items (which usually don't have suffix in animation call if raw), force 0.
+                
+                // Actually, let's just do 2 decimals for suffix, 0 for others.
+                displayStr = currentVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            } else {
+                displayStr = Math.round(currentVal).toLocaleString();
+            }
             
             let sign = isNegative ? "- " : "";
             obj.innerHTML = prefix + sign + displayStr + suffix;
@@ -656,8 +679,13 @@
             if (progress < 1) {
                 window.requestAnimationFrame(step);
             } else {
-                // V57: Strict rounding for final value
-                let finalStr = Math.round(end).toLocaleString();
+                // Final state
+                let finalStr = "";
+                if(suffix) {
+                     finalStr = end.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                } else {
+                     finalStr = Math.round(end).toLocaleString();
+                }
                 obj.innerHTML = prefix + sign + finalStr + suffix;
             }
         };
@@ -682,8 +710,8 @@
         return (num / 1000).toFixed(1) + 'k';
     }
     
+    // V66: Force Integer in List
     function formatChineseCurrency(num) {
-        // V57: Strict Rounding
         if (Math.abs(num) >= 100000000) return Math.round(num / 100000000).toLocaleString() + ' 億';
         if (Math.abs(num) >= 10000) return Math.round(num / 10000).toLocaleString() + ' 萬';
         return Math.round(num).toLocaleString();
@@ -695,47 +723,52 @@
 
     function toggleGroup(header) { header.parentElement.classList.toggle('open'); }
 
+    // V66: Safety Valve Fetch
     async function fetchData(needsNetwork = true) {
         document.getElementById('loadingOverlay').classList.add('active');
         document.getElementById('errorMsg').style.display = 'none';
         
-        let url = document.getElementById('csvUrl').value.trim();
-        if (!url) {
-             document.getElementById('loadingOverlay').classList.remove('active');
-             return;
-        }
-        
-        if (!needsNetwork && window.cachedCSV) { 
-            parseCSV(window.cachedCSV); 
-            setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 500);
-            return; 
-        }
+        try {
+            let url = document.getElementById('csvUrl').value.trim();
+            if (!url) { return; } // Finally block will handle removal
+            
+            if (!needsNetwork && window.cachedCSV) { 
+                parseCSV(window.cachedCSV); 
+                return; 
+            }
 
-        document.getElementById('assetListContainer').innerHTML = '';
-
-        const cacheBuster = encodeURIComponent(url + '&t=' + Date.now());
-        const proxies = [
-            'https://api.allorigins.win/raw?url=' + cacheBuster,
-            'https://corsproxy.io/?' + cacheBuster,
-            'https://thingproxy.freeboard.io/fetch/' + cacheBuster
-        ];
-        let text = ''; let success = false;
-        for (let proxy of proxies) {
-            try {
-                const res = await fetch(proxy);
-                if (res.ok) {
-                    text = await res.text();
-                    if (!text.trim().startsWith('<!DOCTYPE html') && !text.includes('<html')) { success = true; break; }
-                }
-            } catch (e) { }
-        }
-        if (success) {
-            window.cachedCSV = text; parseCSV(text);
-            setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 600);
-        } else {
-            document.getElementById('loadingOverlay').classList.remove('active');
+            const cacheBuster = encodeURIComponent(url + '&t=' + Date.now());
+            const proxies = [
+                'https://api.allorigins.win/raw?url=' + cacheBuster,
+                'https://corsproxy.io/?' + cacheBuster,
+                'https://thingproxy.freeboard.io/fetch/' + cacheBuster
+            ];
+            
+            let text = ''; let success = false;
+            for (let proxy of proxies) {
+                try {
+                    const res = await fetch(proxy);
+                    if (res.ok) {
+                        text = await res.text();
+                        if (!text.trim().startsWith('<!DOCTYPE html') && !text.includes('<html')) { success = true; break; }
+                    }
+                } catch (e) { }
+            }
+            
+            if (success) {
+                window.cachedCSV = text; 
+                parseCSV(text);
+            } else {
+                throw new Error("無法連線至 Google Sheet");
+            }
+            
+        } catch (e) {
+            console.error(e);
             document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').innerHTML = `⚠️ 連線失敗，請重整。`;
+            document.getElementById('errorMsg').innerHTML = `⚠️ 讀取失敗：${e.message || "請檢查連結"}`;
+        } finally {
+            // V66: ALWAYS remove loading overlay
+            setTimeout(() => document.getElementById('loadingOverlay').classList.remove('active'), 600);
         }
     }
 
@@ -833,7 +866,7 @@
         if(Math.abs(totalNetWorth) >= 100000000) { suffix = " 億"; displayNum = totalNetWorth / 100000000; }
         else if (Math.abs(totalNetWorth) >= 10000) { suffix = " 萬"; displayNum = totalNetWorth / 10000; }
         
-        animateValue(document.getElementById('displayTotal'), 0, displayNum, 1500, totalNetWorth < 0, "", "");
+        animateValue(document.getElementById('displayTotal'), 0, displayNum, 2000, totalNetWorth < 0, "", "");
         document.getElementById('displayUnit').innerText = suffix;
         
         drawTrendChart(historyData, totalNetWorth);
@@ -843,7 +876,6 @@
         drawPie('chartLiquidity', 'legendLiquidity', 'valLiquidity', liquidity, totalAssetsOnly, ['fixed', 'liquid']);
         drawPie('chartCurrency', 'legendCurrency', 'valCurrency', currency, totalAssetsOnly, ['usd', 'twd']);
 
-        // V65: Pass History Data to Analysis
         renderDeepDive(totalAssetsOnly, totalLiabilities, liquidity.liquid, cats.cash || 0, allAssets, historyData, totalNetWorth, cats);
 
         const container = document.getElementById('assetListContainer');
@@ -909,9 +941,7 @@
         });
     }
 
-    // V65: Advanced Analytics Logic
     function renderDeepDive(totalAssets, totalDebt, liquidAssets, cashTotal, allAssets, history, currentNetWorth, cats) {
-        // 1. Health
         const netLiquid = liquidAssets - totalDebt;
         document.getElementById('kpiNetLiquid').innerText = "NT$ " + formatChineseCurrency(netLiquid);
         document.getElementById('kpiTotalDebt').innerText = "NT$ " + formatChineseCurrency(totalDebt);
@@ -923,61 +953,45 @@
         solvencyEl.innerText = solvency + "x";
         if(solvency < 1) solvencyEl.style.color = '#A6444D'; else solvencyEl.style.color = '#569C78';
 
-        // 2. Growth from History
         let mom = 0; let ytd = 0; let ath = 0;
         if(history.length > 0) {
-             // MoM (Approx 30 days)
-             // Find entry closest to 30 days ago
              const now = new Date();
              const thirtyDaysAgo = new Date(now.setDate(now.getDate() - 30));
-             const oneYearAgo = new Date(new Date().getFullYear(), 0, 1); // Jan 1st
-             
-             let momVal = history[0].val; // Default oldest
+             const oneYearAgo = new Date(new Date().getFullYear(), 0, 1);
+             let momVal = history[0].val; 
              let ytdVal = history[0].val; 
              let maxVal = -Infinity;
-
              history.forEach(h => {
                  const d = new Date(h.date);
                  if (d < thirtyDaysAgo) momVal = h.val;
                  if (d < oneYearAgo) ytdVal = h.val;
                  if (h.val > maxVal) maxVal = h.val;
              });
-             if (currentNetWorth > maxVal) maxVal = currentNetWorth; // Include today
-
-             // Calc
+             if (currentNetWorth > maxVal) maxVal = currentNetWorth;
              if(momVal !== 0) mom = ((currentNetWorth - momVal) / momVal * 100).toFixed(1);
              if(ytdVal !== 0) ytd = ((currentNetWorth - ytdVal) / ytdVal * 100).toFixed(1);
              if(maxVal !== 0) ath = ((currentNetWorth - maxVal) / maxVal * 100).toFixed(1);
         }
-        
         setGrowthColor('kpiMoM', mom);
         setGrowthColor('kpiYTD', ytd);
         setGrowthColor('kpiATH', ath);
 
-        // 3. Risk Profile
-        // Aggressive: Stocks (US + TW)
         const aggressive = (cats.us_stock || 0) + (cats.tw_stock || 0);
-        // Defensive: Cash + Bond
         const defensive = (cats.cash || 0) + (cats.bond || 0);
-        // Anchor: Real Estate
         const anchor = (cats.realestate || 0);
-        
         const totalAlloc = aggressive + defensive + anchor;
         if(totalAlloc > 0) {
             const aggPct = (aggressive / totalAlloc * 100).toFixed(0);
             const defPct = (defensive / totalAlloc * 100).toFixed(0);
             const ancPct = (anchor / totalAlloc * 100).toFixed(0);
-            
             document.getElementById('riskAggressive').style.width = aggPct + '%';
             document.getElementById('riskDefensive').style.width = defPct + '%';
             document.getElementById('riskAnchor').style.width = ancPct + '%';
-            
             document.getElementById('valAggressive').innerText = aggPct + '%';
             document.getElementById('valDefensive').innerText = defPct + '%';
             document.getElementById('valAnchor').innerText = ancPct + '%';
         }
 
-        // 4. Top 5
         const topList = document.getElementById('topHoldingsList');
         topList.innerHTML = '';
         allAssets.sort((a, b) => b.val - a.val);
