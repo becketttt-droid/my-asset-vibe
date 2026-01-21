@@ -9,7 +9,7 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📊</text></svg>">
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23000000%22 rx=%2220%22 ry=%2220%22/><text x=%2250%22 y=%2250%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2260%22>📊</text></svg>">
 
-    <title>My Net Worth (V69 Visual Enhancements)</title>
+    <title>My Net Worth (V70 Colorized)</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
@@ -59,6 +59,7 @@
             position: relative; 
             min-height: 100vh;
             padding: calc(20px + var(--safe-top)) 20px calc(90px + var(--safe-bottom)) 20px; 
+            transition: max-width 0.3s ease;
         }
 
         /* --- Loading Overlay --- */
@@ -211,17 +212,17 @@
         .risk-seg { height: 100%; transition: width 1s var(--ios-ease); }
         .risk-legend { display: flex; justify-content: space-between; width: 100%; font-size: 10px; color: var(--subtext); margin-bottom: 15px;}
 
-        /* V69: New Top Holdings Style */
-        .holding-item { width: 100%; margin-bottom: 12px; background: #1a1a1a; border-radius: 12px; padding: 10px 12px; border: 1px solid #222; position: relative; overflow: hidden; }
-        .holding-row { display: flex; justify-content: space-between; align-items: center; position: relative; z-index: 2; }
+        /* V70: Colorized Top Holdings */
+        .holding-item { width: 100%; margin-bottom: 12px; }
+        .holding-row { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 6px; }
         .holding-left { display: flex; align-items: center; gap: 8px; }
-        .holding-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .holding-dot { width: 8px; height: 8px; border-radius: 50%; box-shadow: 0 0 8px rgba(255,255,255,0.2); }
         .holding-name { font-size: 13px; font-weight: 600; color: #fff; }
-        .holding-right { text-align: right; }
-        .holding-val { font-size: 13px; font-weight: bold; font-family: ui-monospace, monospace; display: block; }
-        .holding-pct { font-size: 10px; color: var(--subtext); }
-        .holding-bar-bg { position: absolute; bottom: 0; left: 0; width: 100%; height: 4px; background: #222; opacity: 0.5; z-index: 1; }
-        .holding-bar-fill { height: 100%; width: 0%; transition: width 1.5s var(--ios-ease); opacity: 0.7; }
+        .holding-right { text-align: right; line-height: 1.1; }
+        .holding-val { font-size: 13px; font-weight: bold; font-family: ui-monospace, monospace; color: #eee; }
+        .holding-pct { font-size: 10px; color: var(--subtext); margin-left: 4px; }
+        .holding-bar-bg { width: 100%; height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden; }
+        .holding-bar-fill { height: 100%; border-radius: 3px; width: 0%; transition: width 1.5s var(--ios-ease); }
         
         /* Asset List */
         .asset-list-container { display: grid; gap: 12px; align-items: start; }
@@ -259,8 +260,10 @@
         .is-interest .asset-val { color: #596275; }
         
         .section-title { font-size: 18px; font-weight: bold; margin-bottom: 15px; color: #fff; padding-left: 5px; border-left: 3px solid var(--accent); line-height: 1; margin-top: 10px;}
-        /* V69: Fix top spacing on Analysis page */
-        #page-analysis .section-title:first-child { margin-top: 0; }
+        
+        /* V70: Layout Fix for Top Spacing */
+        /* Force remove top margin for the first title in analysis page */
+        #page-analysis .section-title:first-child { margin-top: 0 !important; }
         
         @media (min-width: 1024px) {
             .container { max-width: 1200px; padding-bottom: 40px; }
@@ -411,7 +414,7 @@
                 <div id="errorMsg" class="error-text"></div>
             </div>
             <div style="text-align:center; margin-top:20px; color:#555; font-size:12px;">
-                Vibe Coding V69.0<br>Visual Enhancements
+                Vibe Coding V70.0<br>Colorized & Compact
             </div>
         </div>
     </div>
@@ -773,7 +776,9 @@
                     <div class="weight-bar" style="background-color: ${iconColor}; width: 0%;"></div>
                     <div class="category-header ${isDebtGroup ? 'is-debt' : ''}" onclick="toggleGroup(this)">
                         <div class="cat-left-content">
-                            <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}"><svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg></div>
+                            <div class="cat-icon-box" style="background: ${hexToRgba(iconColor, 0.15)}">
+                                <svg viewBox="0 0 24 24" style="fill: ${iconColor}">${iconPath}</svg>
+                            </div>
                             <div class="cat-text-info"><span class="cat-name">${typeLabels[key]}</span><span class="cat-count">${items.length}</span></div>
                         </div>
                         <div class="cat-right-content"><span class="cat-amount" data-value="${groupTotal}">NT$ ${displayTotal}</span><span class="cat-pct">${pct}% ${isDebtGroup ? 'of Liab.' : 'of Asset'}</span></div>
@@ -848,7 +853,7 @@
             document.getElementById('valAnchor').innerText = ancPct + '%';
         }
 
-        // V69: New Colorized Top Holdings
+        // V70: Colorized Top Holdings
         const topList = document.getElementById('topHoldingsList');
         topList.innerHTML = '';
         allAssets.sort((a, b) => b.val - a.val);
@@ -857,21 +862,22 @@
             const pct = (item.val / totalAssets * 100).toFixed(1);
             const displayVal = formatChineseCurrency(Math.round(item.val));
             const barColor = colors[item.category] || '#555';
+            
             const div = document.createElement('div');
             div.className = 'holding-item';
             div.innerHTML = `
                 <div class="holding-row">
                     <div class="holding-left">
-                        <div class="holding-dot" style="background: ${barColor}"></div>
+                        <div class="holding-dot" style="background: ${barColor};"></div>
                         <span class="holding-name">${item.name}</span>
                     </div>
                     <div class="holding-right">
                         <span class="holding-val">${displayVal}</span>
-                        <span class="holding-pct">${pct}% of Assets</span>
+                        <span class="holding-pct">${pct}%</span>
                     </div>
                 </div>
                 <div class="holding-bar-bg">
-                    <div class="holding-bar-fill" style="background-color: ${barColor};" data-width="${pct}%"></div>
+                    <div class="holding-bar-fill" style="background-color: ${barColor}; width: 0%;" data-width="${pct}%"></div>
                 </div>
             `;
             topList.appendChild(div);
